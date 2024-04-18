@@ -1,0 +1,749 @@
+/**
+*
+* MIT License
+*
+* Copyright (c) Open Enclave SDK contributors.
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE
+*
+*/
+
+#include "sgx_urts.h"
+#include <stdio.h>
+#include <openssl/x509.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include <openssl/ts.h>
+#include <openssl/asn1.h>
+#include <openssl/evp.h>
+#include "../autogen_src/entire_enc_u.h"
+#include "ts_verifier_info.h"
+#include "du_enc_mang.h"
+#include "du_debug.h"
+#include "du_common.h"
+
+/* Global EID shared by multiple threads */
+sgx_enclave_id_t enclave_global_eid = 0;
+int du_decrypt_data(EVP_PKEY* pkey, const char* ctxt, int ctxt_len, char* ptxt, int* p_ptxt_len);
+
+char g_du_private_key_file_name[] = "./materials/sample_du_pri_key.pem";
+char g_du_public_key_file_name[] = "./materials/sample_du_pub_key.pem";
+
+
+typedef struct _sgx_errlist_t {
+    sgx_status_t err;
+    const char *msg;
+    const char *sug; /* Suggestion */
+} sgx_errlist_t;
+
+/* Error code returned by sgx_create_enclave */
+static sgx_errlist_t sgx_errlist[] = {
+    {
+        SGX_ERROR_UNEXPECTED,
+        "Unexpected error occurred.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_PARAMETER,
+        "Invalid parameter.",
+        NULL
+    },
+    {
+        SGX_ERROR_OUT_OF_MEMORY,
+        "Out of memory.",
+        NULL
+    },
+    {
+        SGX_ERROR_ENCLAVE_LOST,
+        "Power transition occurred.",
+        "Please refer to the sample \"PowerTransition\" for details."
+    },
+    {
+        SGX_ERROR_INVALID_ENCLAVE,
+        "Invalid enclave image.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_ENCLAVE_ID,
+        "Invalid enclave identification.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_SIGNATURE,
+        "Invalid enclave signature.",
+        NULL
+    },
+    {
+        SGX_ERROR_OUT_OF_EPC,
+        "Out of EPC memory.",
+        NULL
+    },
+    {
+        SGX_ERROR_NO_DEVICE,
+        "Invalid SGX device.",
+        "Please make sure SGX module is enabled in the BIOS, and install SGX driver afterwards."
+    },
+    {
+        SGX_ERROR_MEMORY_MAP_CONFLICT,
+        "Memory map conflicted.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_METADATA,
+        "Invalid enclave metadata.",
+        NULL
+    },
+    {
+        SGX_ERROR_DEVICE_BUSY,
+        "SGX device was busy.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_VERSION,
+        "Enclave version was invalid.",
+        NULL
+    },
+    {
+        SGX_ERROR_INVALID_ATTRIBUTE,
+        "Enclave was not authorized.",
+        NULL
+    },
+    {
+        SGX_ERROR_ENCLAVE_FILE_ACCESS,
+        "Can't open enclave file.",
+        NULL
+    },
+};
+
+int du_set_do_cert();
+
+/* Check error conditions for loading enclave */
+void print_error_message(sgx_status_t ret)
+{
+    size_t idx = 0;
+    size_t ttl = sizeof sgx_errlist/sizeof sgx_errlist[0];
+
+    for (idx = 0; idx < ttl; idx++) {
+        if(ret == sgx_errlist[idx].err) {
+            if(NULL != sgx_errlist[idx].sug)
+                print_log(DEBUG_LEVEL_INFO, "Info: %s\n", sgx_errlist[idx].sug);
+            print_log(DEBUG_LEVEL_ERROR, "Error: %s\n", sgx_errlist[idx].msg);
+            break;
+        }
+    }
+
+    if (idx == ttl)
+        print_log(DEBUG_LEVEL_ERROR, "Error code is 0x%X. Please refer to the \"Intel SGX SDK Developer Reference\" for more details.\n", ret);
+}
+
+sgx_status_t initialize_enclave(const char *enclave_path)
+{
+    sgx_status_t ret = SGX_ERROR_UNEXPECTED;
+
+	// the 1st parameter should be SERVER_ENCLAVE_FILENAME
+	ret = sgx_create_enclave(enclave_path, SGX_DEBUG_FLAG, NULL, NULL,
+				&enclave_global_eid, NULL);
+
+	print_log(DEBUG_LEVEL_INFO, "Server Enc: Enclave library %s\n", enclave_path);
+
+    if (ret != SGX_SUCCESS)
+    {
+        print_error_message(ret);
+        return ret;
+    }
+    return ret;
+}
+
+void terminate_enclave()
+{
+    sgx_destroy_enclave(enclave_global_eid);
+    print_log(DEBUG_LEVEL_INFO, "Host: Enclave successfully terminated.\n");
+}
+
+int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port)
+{
+    sgx_status_t result = SGX_SUCCESS;
+    int ret = -1;
+    int keep_server_up = 0; // should be bool type, 0 false, 1 true
+
+    print_log(DEBUG_LEVEL_INFO, "Host: Creating the enclave\n");
+    result = initialize_enclave(enc_path);
+    if (result != SGX_SUCCESS)
+    {
+        goto exit;
+    }
+    
+    print_log(DEBUG_LEVEL_INFO, "Host: calling setup_tls_server\n");
+    
+    if(du_set_do_cert() != 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Cannot set the public key-certificate of data-owner to the enclave\n");
+        goto exit;
+    }
+
+    if (fork() == 0)
+    {
+        /* Child process */
+        result = ecall_set_up_tls_server(enclave_global_eid, &ret, enc_port, keep_server_up);
+        
+        if (result != SGX_SUCCESS || ret != 0)
+        {
+            print_log(DEBUG_LEVEL_ERROR, "Host: setup_tls_server failed\n");
+            goto exit;
+        }
+
+        /* Child process should exit */
+        exit(0);
+    }
+
+    /* Parent process */
+    //sleep(2);
+
+    ret = 0;
+exit:
+
+    return ret;
+}
+
+int du_access_do_priv_data(void)
+{
+    sgx_status_t enc_result = SGX_SUCCESS;
+    int encypted_result_sz;
+    int ptxt_result_sz;
+    int ret = -1;
+    char ptxt_result[100] = {0};
+
+    print_log(DEBUG_LEVEL_INFO, "Host: Start accessing the data\n");
+    
+    enc_result = initialize_enclave(DU_RCV_SIGNED_ENC_PATH);
+    if (enc_result != SGX_SUCCESS)
+    {
+        goto exit;
+    }
+  
+    enc_result = ecall_check_personal_loan_eligibility(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ);
+    
+    if ((enc_result != SGX_SUCCESS) || (ret != 0) || (encypted_result_sz <= 0))
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Host: Cannot access the data-owner's private data. enc_result = %d, ret = %d, encypted_result_sz = %d, SGX_SUCCESS = %d\n", enc_result, ret, encypted_result_sz, SGX_SUCCESS);
+        goto exit;
+    }
+    
+    if (du_decrypt(g_buffer, encypted_result_sz, ptxt_result, &ptxt_result_sz) < 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Host: problem during data-access\n");
+        goto exit;
+    }
+
+    print_log(DEBUG_LEVEL_INFO, "Data accessed successfully, the result of evaluation is: %s, return from enclave is = %d\n", ptxt_result, ret);
+
+    ret = 0;
+exit:
+    du_destroy_enc();
+
+    return ret;
+}
+
+void du_destroy_enc()
+{
+    sgx_status_t result = SGX_SUCCESS;
+    int dummy = 1;
+
+    print_log(DEBUG_LEVEL_INFO, "Host: calling sample ecall with dummy parameters\n");
+
+#if 0/* This dummy function call is no more required */
+    result = enclave_0_ecall_0(enclave_global_eid, &ret, 2, 3);
+    if (result != SGX_SUCCESS || ret < 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Host: enclave_0_ecall_0 failed\n");
+    }
+
+    print_log(DEBUG_LEVEL_INFO, "Host: Got return from enclave = %d\n", ret);
+#endif
+    print_log(DEBUG_LEVEL_INFO, "Host: Terminating enclaves\n");
+
+    result = ecall_tear_down_tls_server(enclave_global_eid, &dummy);
+    
+    if (result != SGX_SUCCESS)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Host: Problem during tearing down the server within the enclave..!!\n");
+    }
+
+    terminate_enclave();
+
+    return;
+}
+
+int du_decrypt(const char* ctxt, int ctxt_len, char* ptxt, int* p_ptxt_len)
+{
+    int ret = -1;
+    EVP_PKEY *pkey = NULL;
+    FILE* fp = NULL;
+   
+    fp = fopen(g_du_private_key_file_name,"rb");
+    
+    if(fp == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Problem during opening the data-user's private-key file\n");
+        goto exit;
+    }
+ 
+    pkey = PEM_read_PrivateKey(fp, &pkey, NULL, NULL);
+    
+    if (pkey == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Failed to read the private key\n");
+        goto exit;
+    }
+
+    if (du_decrypt_data(pkey, ctxt, ctxt_len, ptxt, p_ptxt_len) < 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Problem during the decryption operation\n");
+        goto exit;
+    }
+
+    ret = 0;
+
+exit:
+    if (pkey != NULL)
+    {
+        EVP_PKEY_free(pkey);
+    }
+
+    if (fp != NULL)
+    {
+        fclose(fp);
+    }
+
+    return ret;
+}
+
+int du_decrypt_data(EVP_PKEY* pkey, const char* ctxt, int ctxt_len, char* ptxt, int* p_ptxt_len)
+{
+    int ret = -1;
+
+    EVP_PKEY_CTX*ctx = EVP_PKEY_CTX_new(pkey,NULL);
+
+    EVP_PKEY_decrypt_init(ctx);
+    
+    ret = EVP_PKEY_decrypt(ctx, ptxt, (size_t *)p_ptxt_len, ctxt, ctxt_len);
+
+    /* On Success, it returns 1 */
+    if(ret == 1){
+        print_log(DEBUG_LEVEL_INFO, "Plaintext length: %d, plaintext is:\n", *(p_ptxt_len));
+        BIO_dump_fp(stdout,ptxt,(int)*(p_ptxt_len));
+        ret = 0;
+    }else{
+        print_log(DEBUG_LEVEL_ERROR,"error: decrypt\n");
+        ret = -1;
+    } 
+    
+    EVP_PKEY_CTX_free(ctx);
+    
+    return ret;
+}
+
+int du_encrypt_data(EVP_PKEY* pkey, char* ctxt, int* p_ctxt_len, const char* ptxt, int ptxt_len)
+{
+    int ret = -1;
+
+    EVP_PKEY_CTX*ctx = EVP_PKEY_CTX_new(pkey,NULL);
+
+    EVP_PKEY_encrypt_init(ctx);
+    
+    ret = EVP_PKEY_encrypt(ctx, ctxt, (size_t *)p_ctxt_len, ptxt, ptxt_len);
+
+    /* On FAILURE, it returns 0 */
+    if(ret == 0){
+        print_log(DEBUG_LEVEL_ERROR, "error: encrypt\n");
+        ret = -1;
+    }else{
+        print_log(DEBUG_LEVEL_INFO, "Ciphertext length: %d, ciphertext is:\n", *(p_ctxt_len));
+        BIO_dump_fp(stdout,ctxt,(int)*(p_ctxt_len));
+        ret = 0;
+    } 
+    
+    EVP_PKEY_CTX_free(ctx);
+    
+    return ret;
+}
+
+int du_set_do_cert()
+{
+    FILE* fp = NULL;
+    int ret = -1;
+    int cert_sz;
+
+    fp = fopen(DU_RCV_DO_CERT_PATH,"rb");
+    
+    if(fp == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Problem during opening the data-owner's certificate file\n");
+        goto exit;
+    }
+    
+    /* Determine the file size */
+    fseek(fp, 0L, SEEK_END);
+    cert_sz = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+
+    if(fread(g_buffer, 1, cert_sz, fp) != cert_sz)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Problem during opening the certificate file of data-owner\n");
+        goto exit;
+    }
+
+    if(ecall_set_do_cert(enclave_global_eid, g_buffer) != SGX_SUCCESS)
+    {
+        print_log(DEBUG_LEVEL_ERROR, "Problem during setting the certificate file of data-owner to the enclave\n");
+        goto exit;
+    }
+
+    ret = 0;
+    print_log(DEBUG_LEVEL_INFO, "Successfully set the data-owner's certificate to the enclave\n");
+exit:
+    if (fp != NULL)
+    {
+        fclose(fp);
+    }
+
+    return ret;
+}
+
+
+TS_REQ *g_ts_req = NULL;
+
+/* TODO: API spec, https://pub.sortix.org/sortix/release/nightly/man/man3/i2d_TS_REQ.3.html */
+
+int create_ts_req(const char* ts_req_file)
+{
+    /* TODO: Inspired from: https://cpp.hotexamples.com/it/examples/-/-/TS_MSG_IMPRINT_set_algo/cpp-ts_msg_imprint_set_algo-function-examples.html */
+
+    int ret = -1;
+    TS_MSG_IMPRINT *msg_imprint = NULL;
+    X509_ALGOR *algo = NULL;
+    int der_len = 0;
+    unsigned char *data = NULL;
+    ASN1_INTEGER *nonce_asn1 = NULL;
+    FILE* fp = NULL;
+    unsigned char *p_ts_req_der = NULL;
+    
+    /* Work with dummy digest */
+    char dummy_digest[] = { 0x3a, 0x30, 0x94, 0x8f, 0x8c, 0xd5, 0x65, 0x5f, 0xed, 0xe3, 0x89, 0xd7, 0x3b, 0x5f, 0xec, 0xd9, 0x12, 0x51, 0xdf, 0x4a };
+
+#warning Fix-this: Returned time-stamp is not correct
+
+    print_log(DEBUG_LEVEL_INFO, "Creating a time-stamping request file\n");
+
+    g_ts_req = TS_REQ_new();
+    
+    if (g_ts_req == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot allocate a new time-stamp request object\n");
+        goto exit;
+    }
+
+    /* All the viewed examples used version 1 */
+    if (TS_REQ_set_version(g_ts_req, 1) == 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the version to the time-stamp request\n");
+        goto exit;
+    }
+
+    msg_imprint = TS_MSG_IMPRINT_new();
+    
+    if (msg_imprint == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create new message imprint\n");
+        goto exit;
+    }
+
+    algo = X509_ALGOR_new();
+
+    if (algo == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create new algo object\n");
+        goto exit;
+    }
+
+    if ((algo->algorithm = OBJ_nid2obj(EVP_MD_type(EVP_get_digestbyname("sha1")))) == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the algorithm\n");
+        goto exit;
+    }
+
+    if ((algo->parameter = ASN1_TYPE_new()) == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create the parameter object for the algo\n");
+        goto exit;
+    }
+    
+    algo->parameter->type = V_ASN1_NULL;
+
+    if (TS_MSG_IMPRINT_set_algo(msg_imprint, algo) != 1)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the algo to the message imprint\n");
+        goto exit;
+    }
+   
+    if (TS_MSG_IMPRINT_set_msg(msg_imprint, dummy_digest, 20) != 1)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the data to the message imprint\n");
+        goto exit;
+    }
+    
+    if (TS_REQ_set_msg_imprint(g_ts_req, msg_imprint) != 1)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the message imprint to the time-stamping request\n");
+        goto exit;
+    }
+
+    nonce_asn1 = ASN1_INTEGER_new();
+
+    if (nonce_asn1 == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create asn1 integer for the nonce\n");
+        goto exit;
+    }
+
+#warning fixit set the nonce
+    ASN1_INTEGER_set(nonce_asn1, 0);
+
+    if (TS_REQ_set_nonce(g_ts_req, nonce_asn1) != 1)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the nonce to the time-stamping request\n");
+        goto exit;
+    }
+    
+    fp = fopen(ts_req_file, "wb");
+
+    if (fp == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot open the file for writing the time-stamping request\n");
+        goto exit;
+    }
+   
+    der_len = i2d_TS_REQ(g_ts_req, &p_ts_req_der);
+    
+    if (der_len <= 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot convert the time-response to the DER format\n");
+        goto exit;
+    }
+
+    if (fwrite(p_ts_req_der, 1, der_len, fp) != der_len)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Problem during the write operation to the file\n");
+        goto exit;
+    }
+    
+    print_log(DEBUG_LEVEL_INFO,  "Successfully generated timestamp request file: %s\n", ts_req_file);
+
+    ret = 0;
+
+exit:
+    if (p_ts_req_der != NULL)
+    {
+        OPENSSL_free(p_ts_req_der);
+    }
+
+    if (fp != NULL)
+    {
+        fclose(fp);
+    }
+
+    if (nonce_asn1  != NULL)
+    {
+        ASN1_INTEGER_free(nonce_asn1);
+    }
+
+    if (algo != NULL)
+    {
+        X509_ALGOR_free(algo);
+    }
+
+    if (msg_imprint != NULL)
+    {
+        TS_MSG_IMPRINT_free(msg_imprint);
+    }
+
+#if 0
+    if (ts_req != NULL)
+    {
+        TS_REQ_free(ts_req);
+    }
+#endif
+
+    return ret;
+}
+
+static int verify_cb(int ok, X509_STORE_CTX *ctx)
+{
+    return ok;
+}
+
+int verify_ts_rsp(char* ts_rsp_buff, int ts_rsp_sz)
+{
+    /* https://cpp.hotexamples.com/it/examples/-/-/TS_RESP_verify_response/cpp-ts_resp_verify_response-function-examples.html */
+
+    int ret = -1;
+    TS_RESP *ts_resp = NULL;
+    BIO *ts_rsp_bio = NULL;
+    TS_VERIFY_CTX *verify_ctx = NULL;
+    STACK_OF(X509) *stack_certs;
+    X509 *x509_signing_cert;
+    X509 *x509_ca;
+    unsigned char* ts_ca_der_ptr = g_ts_ca_cert_buff;
+    unsigned char* ts_signer_der_ptr = g_ts_signer_cert_buff;
+    int ts_ca_der_size = sizeof(g_ts_ca_cert_buff);
+    int ts_signer_der_size = sizeof(g_ts_signer_cert_buff);
+    X509_STORE *store_ctx = NULL;
+   
+   /* Copy the time-stamping request response to buffer */ 
+    print_log(DEBUG_LEVEL_INFO, "Verifying a time-stamping response file\n");
+
+    ts_rsp_bio = BIO_new_mem_buf((void*)ts_rsp_buff, ts_rsp_sz);
+    
+    if (ts_rsp_bio == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot convert the time-stamp response to a BIO\n");
+        goto exit;
+    }
+    
+    ts_resp = d2i_TS_RESP_bio(ts_rsp_bio, &ts_resp);
+    
+    if (ts_resp ==  NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot obtain the response from the BIO\n");
+        goto exit;
+    }
+    
+    if (g_ts_req ==  NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Time-stamping request is not available\n");
+        goto exit;
+    }
+    
+    /* Create a new verify context from previous request */
+    verify_ctx = TS_REQ_to_TS_VERIFY_CTX(g_ts_req, NULL);
+    
+    if (verify_ctx == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create the verify context\n");
+        goto exit;
+    }
+    
+    /* Prepare verifier related information */
+    store_ctx = X509_STORE_new();
+    
+    if (store_ctx == NULL) 
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create the certificate store context\n");
+        goto exit;
+    }
+
+    X509_STORE_set_verify_cb(store_ctx, verify_cb);
+   
+    x509_ca = d2i_X509(NULL, &ts_ca_der_ptr, ts_ca_der_size);
+
+    if (x509_ca == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot read x509 from CA certificate's BIO\n");
+        goto exit;
+    }
+
+    if (X509_STORE_add_cert(store_ctx, x509_ca) == 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot add the CA certificate to the store\n");
+        goto exit;
+    }
+
+    if (TS_VERIFY_CTX_set_store(verify_ctx, store_ctx) == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the verifier's information into the verifying context\n");
+        goto exit;
+    }
+
+    stack_certs = sk_X509_new_null(); 
+
+    if (stack_certs == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot create the stack for the certificate\n");
+        goto exit;
+    }
+
+    x509_signing_cert = d2i_X509(NULL, &ts_signer_der_ptr, ts_signer_der_size);
+
+    if (x509_signing_cert == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot read x509 from singing certificate's BIO\n");
+        goto exit;
+    }
+
+    if (sk_X509_push(stack_certs, x509_signing_cert) == 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot push the signing certificate to the stack\n");
+        goto exit;
+    }
+   
+    if(TS_VERIFY_CTS_set_certs(verify_ctx, stack_certs) == NULL)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Cannot set the signing certificate to the verifying context\n");
+        goto exit;
+    }
+
+    /* Add verifiers information to the verification context */
+
+    if (TS_RESP_verify_response(verify_ctx, ts_resp) == 0)
+    {
+        print_log(DEBUG_LEVEL_ERROR,  "Timestamp response verification failed\n");
+        ERR_print_errors_fp(stdout);
+        goto exit;
+    }
+        
+    print_log(DEBUG_LEVEL_INFO,  "Timestamp response verification passed\n");
+
+    ret = 0;
+
+exit:
+    
+    if (verify_ctx != NULL)
+    {
+        TS_VERIFY_CTX_free(verify_ctx);
+    }
+
+    if (ts_rsp_bio != NULL)
+    {
+        BIO_free_all(ts_rsp_bio);
+    }
+
+    if (ts_resp != NULL)
+    {
+        TS_RESP_free(ts_resp);
+    }
+    
+    if (g_ts_req != NULL)
+    {
+        TS_REQ_free(g_ts_req);
+        g_ts_req = NULL;
+    }
+    
+    return ret;
+}

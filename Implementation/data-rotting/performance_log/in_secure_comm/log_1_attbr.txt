@@ -1,0 +1,7 @@
+cd ./u_data_user/; ./u_data_user "1235" "../test_data_creater/certs/server-cert.pem" "../test_data_creater/certs/server-key.pem" &disown;cd ../u_data_owner;sleep 2;./u_data_owner 127.0.0.1 1235 ../test_data_creater/data_cert/sample_do_data_1_attr.pem 2308185037;cd ../;killall u_data_user
+[1] 17361
+[15-03-2024 02:33:59.900499] Data-owner: Starting data-provision stage
+[15-03-2024 02:33:59.948013] Data-owner: Successfully completed data-provision stage
+[15-03-2024 02:33:59.948121] Data-user: After receiving the data of size: 1602 bytes
+[15-03-2024 02:33:59.948191] Data-user: Before accessing the data
+[15-03-2024 02:33:59.948393] Data-user: After accessing the data

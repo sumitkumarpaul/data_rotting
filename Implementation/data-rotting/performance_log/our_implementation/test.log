@@ -1,0 +1,60 @@
+DO: [17-04-2024 23:52:50.724581] Approval-stage start
+Succeed.
+Succeed.
+DO: [17-04-2024 23:52:50.919510] Successfully completed initial approval stage with data-user
+DO: [17-04-2024 23:52:52.919639] Starting data-provision stage for the file: test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem
+DO: [17-04-2024 23:52:53.168380] Successfully completed data-provision stage
+[ENC.] [17-04-2024 23:52:53.205148] Fetched current block number during data provisioning is: 19678589
+[ENC.] [17-04-2024 23:52:53.205226] Calculated expiry block number is: 19678594
+DU: [17-04-2024 23:53:06.160814] Data-user: Stop accessing the sealed-data
+DU: [17-04-2024 23:53:06.160844] Data accessed successfully, the result of evaluation is: 20, return from enclave is = 0
+[ENC.] [17-04-2024 23:53:06.160101] Data is still not expired. Expiry block number is: (19678594) and the current block number is: (19678590)
+[ENC.] [17-04-2024 23:53:06.160204] Start-data access
+DO: [17-04-2024 23:54:43.160942] Approval-stage start
+Succeed.
+Succeed.
+DO: [17-04-2024 23:54:43.262309] Successfully completed initial approval stage with data-user
+DO: [17-04-2024 23:54:45.262456] Starting data-provision stage for the file: test/test_data_creater/data_cert_discrete/sample_do_data_40_attr.pem
+DO: [17-04-2024 23:54:45.423896] Successfully completed data-provision stage
+[ENC.] [17-04-2024 23:54:45.447638] Fetched current block number during data provisioning is: 19678598
+[ENC.] [17-04-2024 23:54:45.447916] Calculated expiry block number is: 19678603
+DU: [17-04-2024 23:54:58.526904] Data-user: Stop accessing the sealed-data
+DU: [17-04-2024 23:54:58.526930] Data accessed successfully, the result of evaluation is: 100, return from enclave is = 0
+[ENC.] [17-04-2024 23:54:58.526019] Data is still not expired. Expiry block number is: (19678603) and the current block number is: (19678599)
+[ENC.] [17-04-2024 23:54:58.526290] Start-data access
+DO: [17-04-2024 23:55:27.925621] Approval-stage start
+Succeed.
+Succeed.
+DO: [17-04-2024 23:55:28.020966] Successfully completed initial approval stage with data-user
+DO: [17-04-2024 23:55:30.021107] Starting data-provision stage for the file: test/test_data_creater/data_cert_discrete/sample_do_data_60_attr.pem
+DO: [17-04-2024 23:55:30.184096] Successfully completed data-provision stage
+[ENC.] [17-04-2024 23:55:30.206579] Fetched current block number during data provisioning is: 19678602
+[ENC.] [17-04-2024 23:55:30.206662] Calculated expiry block number is: 19678607
+DU: [17-04-2024 23:55:40.419027] Data-user: Stop accessing the sealed-data
+DU: [17-04-2024 23:55:40.419054] Data accessed successfully, the result of evaluation is: 280, return from enclave is = 0
+[ENC.] [17-04-2024 23:55:40.418304] Data is still not expired. Expiry block number is: (19678607) and the current block number is: (19678603)
+[ENC.] [17-04-2024 23:55:40.418408] Start-data access
+DO: [17-04-2024 23:56:19.195668] Approval-stage start
+Succeed.
+Succeed.
+DO: [17-04-2024 23:56:19.297737] Successfully completed initial approval stage with data-user
+DO: [17-04-2024 23:56:21.297883] Starting data-provision stage for the file: test/test_data_creater/data_cert_discrete/sample_do_data_80_attr.pem
+DO: [17-04-2024 23:56:21.463955] Successfully completed data-provision stage
+[ENC.] [17-04-2024 23:56:21.482727] Fetched current block number during data provisioning is: 19678606
+[ENC.] [17-04-2024 23:56:21.482969] Calculated expiry block number is: 19678611
+DU: [17-04-2024 23:56:30.177453] Data-user: Stop accessing the sealed-data
+DU: [17-04-2024 23:56:30.177480] Data accessed successfully, the result of evaluation is: 600, return from enclave is = 0
+[ENC.] [17-04-2024 23:56:30.176685] Data is still not expired. Expiry block number is: (19678611) and the current block number is: (19678607)
+[ENC.] [17-04-2024 23:56:30.176792] Start-data access
+DO: [17-04-2024 23:57:08.735213] Approval-stage start
+Succeed.
+Succeed.
+DO: [17-04-2024 23:57:08.828933] Successfully completed initial approval stage with data-user
+DO: [17-04-2024 23:57:10.829033] Starting data-provision stage for the file: test/test_data_creater/data_cert_discrete/sample_do_data_100_attr.pem
+DO: [17-04-2024 23:57:10.987926] Successfully completed data-provision stage
+[ENC.] [17-04-2024 23:57:11.041500] Fetched current block number during data provisioning is: 19678610
+[ENC.] [17-04-2024 23:57:11.041744] Calculated expiry block number is: 19678615
+DU: [17-04-2024 23:57:19.492294] Data-user: Stop accessing the sealed-data
+DU: [17-04-2024 23:57:19.492325] Data accessed successfully, the result of evaluation is: 1100, return from enclave is = 0
+[ENC.] [17-04-2024 23:57:19.491512] Data is still not expired. Expiry block number is: (19678615) and the current block number is: (19678611)
+[ENC.] [17-04-2024 23:57:19.491626] Start-data access

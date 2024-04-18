@@ -1,0 +1,5 @@
+source /opt/intel/sgxsdk/environment;data-user/data-user get-approval 127.0.0.1 1235 127.0.0.1 1234 127.0.0.1 1236;data-user/data-user access-data 127.0.0.1 1240
+Succeed.
+[ENC.] [09-10-2023 17:29:10.118157] Start-data access
+DU: [09-10-2023 17:29:10.126338] Data-user: Stop accessing the sealed-data
+DU: [09-10-2023 17:29:10.126353] Data accessed successfully, the result of evaluation is: -1624114088, return from enclave is = 0
