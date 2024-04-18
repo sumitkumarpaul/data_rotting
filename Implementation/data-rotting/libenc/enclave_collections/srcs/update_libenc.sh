@@ -1,4 +1,7 @@
 
+echo -e "Please make sure to run the following command in this terminal, otherwise it will not work:\nsource /opt/intel/sgxsdk/environment"
+read
+
 echo "This script will re-compile the code of the enclave for your system and will copy the compiled enclave to data-user's code base"
 
 if test "$#" -ne 1; then
@@ -16,6 +19,11 @@ ENC_SRC_OP_FOLDER="enclave_"$enc_id"_src/enclave"
 ENC_DST_FOLDER="../enclaves"
 EDL_DST_FOLDER="../edls"
 CONFIG_DST_FOLDER="../configs"
+
+# Create enclave destination folder, if not already present
+if [ ! -d $ENC_DST_FOLDER ]; then
+  mkdir -p $ENC_DST_FOLDER;
+fi
 
 rm -rf "../../../data-user/src/"$ENC_SRC_FOLDER 
 cp -r  $ENC_SRC_FOLDER "../../../data-user/src/"$ENC_SRC_FOLDER 
