@@ -1,9 +1,0 @@
-cd ./u_data_user/; ./u_data_user "1235" "../test_data_creater/certs/server-cert.pem" "../test_data_creater/certs/server-key.pem" &disown;cd ../u_data_owner;sleep 2;./u_data_owner 127.0.0.1 1235 ../test_data_creater/data_cert/sample_do_data_1000_attr.pem 2308185037;cd ../;killall 
-u_data_user
-[1] 17671
-[15-03-2024 02:35:42.098149] Data-owner: Starting data-provision stage
-[15-03-2024 02:35:42.147875] Data-owner: Successfully completed data-provision stage
-[15-03-2024 02:35:42.147961] Data-user: After receiving the data of size: 20237 bytes
-[15-03-2024 02:35:42.147983] Data-user: Before accessing the data
-[15-03-2024 02:35:42.148680] Data-user: After accessing the data
-u_data_user: no process found

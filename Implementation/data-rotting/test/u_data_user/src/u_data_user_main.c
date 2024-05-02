@@ -9,6 +9,8 @@
 #include <openssl/asn1.h>
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
+#include <openssl/evp.h>
+#include <openssl/aes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -26,22 +28,24 @@
 #include <arpa/inet.h>
 #include "ts_verifier_info.h"
 
-//#define ENC_BUF_SZ 204800
-#define ENC_BUF_SZ 10240
-#define ENC_BUF_SZ1 204800
+#define ENC_BUF_SZ 204800
 #define ENC_DO_EXP_TIME_FILE "./data_exp_time.txt"
 #define EXP_TIM_STR_SZ          11   /* Epoch time is a string of 10 digits */
 #define CA_FILE "../test_data_creater/certs/ca-cert.pem"
 
 char g_enc_buffer[ENC_BUF_SZ];
-char g_enc_buffer1[ENC_BUF_SZ1];
+char g_enc_buffer1[ENC_BUF_SZ];
 char g_do_priv_data[ENC_BUF_SZ];
 
 char *g_server_cert;
 char *g_server_priv_key;
 char g_do_exp_tim[20];
 char *g_ts_ip = "127.0.0.1";
-int  g_ts_port = 1240;
+int g_ts_port = 1240;
+
+char *rcv_fname = "./do_priv_data.tmp";
+char *enc_fname = "./do_priv_data.tmp.enc";
+char *dec_fname = "./do_priv_data.tmp.dec";
 
 static int enc_trusted_time_comparison();
 int enc_access_all_data(char *priv_data_file, int *p_file_sz);
@@ -64,6 +68,9 @@ int enc_ssl_recv_data(SSL* ssl, char* data_buf);
 int enc_ssl_send_data(SSL* ssl, const char* data_buf, int data_sz);
 int enc_data_usage();
 int sample_client_client_cert_verify(int preverify_ok, X509_STORE_CTX *x509_ctx);
+void file_aes_encrypt(FILE *ifp, FILE *ofp);
+void file_aes_decrypt(FILE *ifp, FILE *ofp);
+
 
 int sample_client_client_cert_verify(int preverify_ok, X509_STORE_CTX *x509_ctx)
 {
@@ -149,7 +156,7 @@ int main(int argc, char **argv)
     int priv_data_sz;
     X509 *client_cert;
     char *str;
-    STACK_OF(X509_NAME) *list;
+  STACK_OF(X509_NAME) *list;
 
     if (argc < 3)
     {
@@ -226,20 +233,30 @@ int main(int argc, char **argv)
     }
     else
     {
+        /* No need to receive expiry time in non-private scenario
         if(enc_ssl_recv_data(ssl, g_do_exp_tim) <= 0)
         {
             printf("Problem during receiving the expiry time\n");
             goto exit;
         }
-
+        */
+       
         /* Receive the private data into a file, in memory */
-        if (enc_ssl_recv_file(ssl, "./do_priv_data.tmp", NULL, &priv_data_sz) != 0)
+        if(enc_ssl_recv_file(ssl, rcv_fname, NULL, &priv_data_sz) != 0)
         {
-            printf("DU: Problem during receiving the file containing the certified private data of the data owner\n");
+            printf("Problem during receiving the file containing the certified private data of the data owner\n");
             goto exit;
         }
+        enc_print_log("Data-user: Before accessing the data\n");
+        
+        FILE *fIN, *fOUT;
+    
+        fIN = fopen(rcv_fname, "rb");//File to be written; cipher text
+        fOUT = fopen(enc_fname, "wb");//File to be written; cipher text
+        file_aes_decrypt(fIN,fOUT);
 
-        enc_print_log("Data-user: After receiving the data of size: %d bytes\n", priv_data_sz);
+        fclose(fIN);
+        fclose(fOUT);
         
         enc_data_usage();
         
@@ -283,7 +300,6 @@ int enc_ssl_send_data(SSL* ssl, const char* data_buf, int data_sz)
     return ret;
 }
 
-/* Assumed that data_buf can hold the entire data */
 int enc_ssl_recv_data(SSL* ssl, char* data_buf)
 {
     int ret = -1;
@@ -298,12 +314,12 @@ int enc_ssl_recv_data(SSL* ssl, char* data_buf)
         bytes_read = SSL_read(ssl, &data_buf[total_bytes_read], (ENC_BUF_SZ - total_bytes_read));
         error = SSL_get_error(ssl, bytes_read);
        
-        if ((bytes_read < 0) && (error != SSL_ERROR_WANT_READ))
+        if ((bytes_read <= 0) && (error != SSL_ERROR_WANT_READ))
         {
-            printf( "DU: Failed! SSL_read returned error = %d, till now successfully received = %d bytes\n", error, total_bytes_read);
+            printf( "Failed! SSL_read returned error = %d, till now successfully received = %d bytes\n", error, total_bytes_read);
             goto exit;
         }
-        else if ((bytes_read >= 0) && (error == SSL_ERROR_NONE))
+        else if ((bytes_read > 0) && (error == SSL_ERROR_NONE))
         {
             total_bytes_read += bytes_read;
             ret = total_bytes_read;
@@ -363,7 +379,7 @@ int enc_ssl_recv_file(SSL* ssl, const char* file_path, char* recv_buff, int *p_r
     /* First read the file size */
     if(enc_ssl_recv_data(ssl, g_enc_buffer) < 0)
     {
-        printf( "DU: Problem while receiving the file size\n");
+        printf( "Problem while receiving the file size\n");
         goto error_handling;
     }
     
@@ -383,9 +399,9 @@ int enc_ssl_recv_file(SSL* ssl, const char* file_path, char* recv_buff, int *p_r
     
     recv_sz = 0;
     
-    while (recv_sz < file_sz)
+    while (recv_sz != file_sz)
     {
-        cur_recv_sz = enc_ssl_recv_data(ssl, read_buff);
+        cur_recv_sz = enc_ssl_recv_data(ssl, &read_buff[recv_sz]);
 
         if(cur_recv_sz < 0)
         {
@@ -399,8 +415,7 @@ int enc_ssl_recv_file(SSL* ssl, const char* file_path, char* recv_buff, int *p_r
         {
             if (file_path != NULL)
             {
-//                ret = fwrite(&read_buff[recv_sz + cur_write_sz], 1, (cur_recv_sz - cur_write_sz), fp);
-                ret = fwrite(&read_buff[cur_write_sz], 1, (cur_recv_sz - cur_write_sz), fp);
+                ret = fwrite(&read_buff[recv_sz + cur_write_sz], 1, (cur_recv_sz - cur_write_sz), fp);
 
                 if (ret < 0)
                 {
@@ -523,10 +538,16 @@ int enc_data_usage()
 {
     int ret = -1;
     int file_sz = 0;
+    FILE *fIN, *fOUT;
     
-    char *priv_data_file = "./do_priv_data.tmp";
+    fIN = fopen(enc_fname, "rb");//File to be written; cipher text
+    fOUT = fopen(dec_fname, "wb");//File to be written; cipher text
+    file_aes_decrypt(fIN,fOUT);
 
-    ret = enc_access_all_data(priv_data_file, &file_sz);
+    fclose(fIN);
+    fclose(fOUT);
+
+    ret = enc_access_all_data(rcv_fname, &file_sz);
        
     return ret;
 }
@@ -734,9 +755,7 @@ X509* enc_private_data_file_open(const char* data_file_path, int *file_data_sz)
         printf( "Problem during opening the data-expiry date related file\n");
         goto exit;
     }
-    */
-
-    enc_print_log("Data-user: Before accessing the data\n"); 
+    */ 
     
     fp = fopen(data_file_path,"rb");
 
@@ -747,30 +766,28 @@ X509* enc_private_data_file_open(const char* data_file_path, int *file_data_sz)
     
     *file_data_sz = pem_data_sz;
 
-    if(fread(g_enc_buffer1, 1, pem_data_sz, fp) != (size_t)pem_data_sz)
+    if(fread(g_enc_buffer, 1, pem_data_sz, fp) != (size_t)pem_data_sz)
     {
         printf( "Problem during opening the certificate file of data-owner\n");
         goto exit;
     }
     
-    certBio = BIO_new_mem_buf((void*)g_enc_buffer1, -1); 
-        
+    certBio = BIO_new_mem_buf((void*)g_enc_buffer, -1); 
+    
     if(certBio == NULL)
     {
         printf( "Cannot create the BIO file\n");
         goto exit;
     }
 
-    X509_free(certX509);
+    certX509 = PEM_read_bio_X509(certBio, NULL, NULL, NULL);
 
-    certX509 = PEM_read_bio_X509(certBio, NULL, 0, NULL);
-    
     if (certX509 == NULL)
     {
         printf( "Cannot read the BIO file to X509\n");
         goto exit;
     }
-
+  
 exit: 
     if (certBio != NULL)
     {
@@ -1372,3 +1389,61 @@ error_handling:
     return ret;
 }
 
+/* https://stackoverflow.com/questions/24856303/openssl-aes-256-cbc-via-evp-api-in-c */
+void file_aes_encrypt(FILE *ifp, FILE *ofp)
+{
+  //Get file size
+  fseek(ifp, 0L, SEEK_END);
+  int fsize = ftell(ifp);
+  //set back to normal
+  fseek(ifp, 0L, SEEK_SET);
+
+  int outLen1 = 0; int outLen2 = 0;
+  unsigned char *indata = malloc(fsize);
+  unsigned char *outdata = malloc(fsize*2);
+  unsigned char ckey[] =  "thiskeyisverybad";
+  unsigned char ivec[] = "dontusethisinput";
+
+  //Read File
+  fread(indata,sizeof(char),fsize, ifp);//Read Entire File
+
+  //Set up encryption
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  EVP_CIPHER_CTX_init(ctx);
+  EVP_EncryptInit(ctx,EVP_aes_256_cbc(),ckey,ivec);
+  EVP_EncryptUpdate(ctx,outdata,&outLen1,indata,fsize);
+  EVP_EncryptFinal(ctx,outdata,&outLen2);
+  fwrite(outdata,sizeof(char),fsize,ofp);
+  EVP_CIPHER_CTX_free(ctx);
+  free(indata);
+  free(outdata);
+}
+
+void file_aes_decrypt(FILE *ifp, FILE *ofp)
+{
+  //Get file size
+  fseek(ifp, 0L, SEEK_END);
+  int fsize = ftell(ifp);
+  //set back to normal
+  fseek(ifp, 0L, SEEK_SET);
+
+  int outLen1 = 0; int outLen2 = 0;
+  unsigned char *indata = malloc(fsize);
+  unsigned char *outdata = malloc(fsize*2);
+  unsigned char ckey[] =  "thiskeyisverybad";
+  unsigned char ivec[] = "dontusethisinput";
+
+  //Read File
+  fread(indata,sizeof(char),fsize, ifp);//Read Entire File
+
+  //setup decryption
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  EVP_CIPHER_CTX_init(ctx);
+  EVP_DecryptInit(ctx,EVP_aes_256_cbc(),ckey,ivec);
+  EVP_DecryptUpdate(ctx,outdata,&outLen1,indata,fsize);
+  EVP_DecryptFinal(ctx,outdata,&outLen2);
+  fwrite(outdata,sizeof(char),fsize,ofp);
+  EVP_CIPHER_CTX_free(ctx);
+  free(indata);
+  free(outdata);
+}

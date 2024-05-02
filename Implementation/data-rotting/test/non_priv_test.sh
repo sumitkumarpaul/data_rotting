@@ -2,7 +2,7 @@
 cd ./u_data_user/;make -s clean;make -s;cd ..
 cd ./u_data_owner/;make -s clean;make -s;cd ..
 
-for i in 1 10 100 1000 10000
+for i in 20 40 60 80 100
 do
     sudo killall u_data_user > /dev/null 2>&1
     rm -rf "./non_priv_log_"$i".txt"
@@ -15,7 +15,7 @@ do
     cd ./u_data_user/; ./u_data_user "1235" "../test_data_creater/certs/server-cert.pem" "../test_data_creater/certs/server-key.pem" >> "../non_priv_log_"$i".txt"&disown;cd ../
 
     # Start data-owner
-    cd ./u_data_owner;sleep 2;./u_data_owner 127.0.0.1 1235 "../test_data_creater/data_cert/sample_do_data_"$i"_attr.pem" 2308185037 >> "../non_priv_log_"$i".txt"&disown;cd ../
+    cd ./u_data_owner;sleep 2;./u_data_owner 127.0.0.1 1235 "../test_data_creater/data_cert_discrete/sample_do_data_"$i"_attr.pem" 2308185037 >> "../non_priv_log_"$i".txt"&disown;cd ../
 
     # Calculate the number of bytes transferred
     prev_num_bytes=0

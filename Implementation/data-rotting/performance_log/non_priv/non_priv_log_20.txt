@@ -1,0 +1,6 @@
+[02-05-2024 15:50:25.194740] Data-owner: Starting data-provision stage
+[02-05-2024 15:50:25.240919] Data-owner: Successfully completed data-provision stage
+[02-05-2024 15:50:25.240981] Data-user: Before accessing the data
+[02-05-2024 15:50:25.241173] Data-user: After accessing the data
+
+Total number of transferred bytes: 7107

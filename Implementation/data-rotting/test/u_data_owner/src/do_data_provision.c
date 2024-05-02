@@ -208,11 +208,13 @@ int do_send_private_data_and_exp_tim(SSL* ssl)
 {
     int ret = -1;
     
+    /* No need to send expiry time in non-private scenario
     if (do_ssl_send_data(ssl, g_do_exp_tim, (strlen(g_do_exp_tim) + 1)) <= 0)
     {
         print_log(DEBUG_LEVEL_ERROR,  "Failed to send the expiry time to the enclave\n");
         goto exit;
     }
+    */
 
     if (do_ssl_send_file(ssl, g_do_priv_data_file) != 0)
     {
