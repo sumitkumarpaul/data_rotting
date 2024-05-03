@@ -1,4 +1,4 @@
-# data_rotting
+# ROT: Retention and Operation limitation using TEE
 This repository contains all the code and other materials required for TEE based data_rotting mechanisms. This is a test..
 
 # Setup environment
