@@ -1,0 +1,412 @@
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ ./data_transfer_net_com.sh  ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem 
+Arguments provided: 
+ - inputfile_name        = ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem
+ - enclave_policy_file          = enclave_policy.json
+ - access_committee_leader_ip   = 127.0.0.1
+ - access_committee_leader_port = 9001
+ - storage_server_ip     = 127.0.0.1
+ - storage_server_port   = 10001
+
+Reading enclave policy ... 
+Provided enclave policy:
+ - mrsigner = 8968a99b56e2dba5644381863c42e018696bbf8db079a43ddb4437740974b004
+ - mrenclave = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+Enclaves with the above MRENCLAVE can access your secret data! 
+
+Let's specify the expiry conditions for your secret data.
+Please input access limit: 50
+You input is: 50 times
+Please specify how soon your data exists (in days): 1
+You input is: 1 days, that is, your data expires on Thu Apr 25 20:26:04 2024
+Data-Owner: [24-04-2024 20:26:04.896198] Start creating the data-capsule
+Connecting to Access Commitee Leader ...
+Connected!
+Obtained cluster configuration: 
+ - leader_id = 1
+ - num_of_nodes = 3
+ - endpoints = {"1":"127.0.0.1:9001","2":"127.0.0.1:9002","3":"127.0.0.1:9003"}
+Random encryption key: �{���W�r�
+                                vo��)J��şHT#'%��;��
+Encrypting your file ( ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem ) ...
+sha256sum of the encrypted file: f5a9b6988ffed3fd41c72e378010a8ac99e44c9f20825cbb2b460abb728c365f
+Secret-sharing your encryption key using the (3-2) scheme
+
+
+Key (HEX)   : 1fd47bfcc5cb57ea72890c766f1895a8294acdc1c59f4854232725a90101fd3b
+Size (bits) : 256
+
+---------------------------------------------------
+Leader node info: 
+ - server_id = 1
+ - endpoint (ip:http_port) = 127.0.0.1:9001
+---------------------------------------------------
+
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9001"
+Node endpoint (ip:http_port) is : "127.0.0.1:9002"
+Node endpoint (ip:http_port) is : "127.0.0.1:9003"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Data-Owner: [24-04-2024 20:26:04.899760] Ended creating the data-capsule
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Data Capsule created! Here are the details:
+
+Secret data to be protected: ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem
+
+Data Capsule ID: f5a9b6988ffed3fd41c72e378010a8ac99e44c9f20825cbb2b460abb728c365f
+
+Expiry Conditions: 
+  - Access limit : 50
+  - Expires on   : Thu Apr 25 20:26:04 2024
+
+Apps that can access the secret data: 
+  MRENLCAVE = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+To let others use your secret data, share with them or ask them to download 
+the data capsule file with the following name: 
+  f5a9b6988ffed3fd41c72e378010a8ac99e44c9f20825cbb2b460abb728c365f.enc
+and tell them the above Data Capsule ID!
+
+/home/sumit/phd-uottawa-research/Research/Experimentation/TEEKAP
+kill: (9001): No such process
+Captured bytes: 8763
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ ./data_transfer_net_com.sh  ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_40_attr.pem 
+Arguments provided: 
+ - inputfile_name        = ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_40_attr.pem
+ - enclave_policy_file          = enclave_policy.json
+ - access_committee_leader_ip   = 127.0.0.1
+ - access_committee_leader_port = 9001
+ - storage_server_ip     = 127.0.0.1
+ - storage_server_port   = 10001
+
+Reading enclave policy ... 
+Provided enclave policy:
+ - mrsigner = 8968a99b56e2dba5644381863c42e018696bbf8db079a43ddb4437740974b004
+ - mrenclave = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+Enclaves with the above MRENCLAVE can access your secret data! 
+
+Let's specify the expiry conditions for your secret data.
+Please input access limit: 50
+You input is: 50 times
+Please specify how soon your data exists (in days): 1
+You input is: 1 days, that is, your data expires on Thu Apr 25 20:28:04 2024
+Data-Owner: [24-04-2024 20:28:04.975944] Start creating the data-capsule
+Connecting to Access Commitee Leader ...
+Connected!
+Obtained cluster configuration: 
+ - leader_id = 1
+ - num_of_nodes = 3
+ - endpoints = {"1":"127.0.0.1:9001","2":"127.0.0.1:9002","3":"127.0.0.1:9003"}
+Random encryption key: ���l�����!G�+i��I���~7ꕇ��!�gI�
+Encrypting your file ( ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_40_attr.pem ) ...
+sha256sum of the encrypted file: 8e8f428bcff14e32e2a012ebcfbe11c0f18fddf1a6e336500c59b82327d68b09
+Secret-sharing your encryption key using the (3-2) scheme
+
+
+Key (HEX)   : f4e5c66caba9f9d6cd2147e82b02699cd349a0d07f907e37ea9587a3cc211b32
+Size (bits) : 256
+
+---------------------------------------------------
+Leader node info: 
+ - server_id = 1
+ - endpoint (ip:http_port) = 127.0.0.1:9001
+---------------------------------------------------
+
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9001"
+Node endpoint (ip:http_port) is : "127.0.0.1:9002"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9003"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Data-Owner: [24-04-2024 20:28:04.980319] Ended creating the data-capsule
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Data Capsule created! Here are the details:
+
+Secret data to be protected: ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_40_attr.pem
+
+Data Capsule ID: 8e8f428bcff14e32e2a012ebcfbe11c0f18fddf1a6e336500c59b82327d68b09
+
+Expiry Conditions: 
+  - Access limit : 50
+  - Expires on   : Thu Apr 25 20:28:04 2024
+
+Apps that can access the secret data: 
+  MRENLCAVE = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+To let others use your secret data, share with them or ask them to download 
+the data capsule file with the following name: 
+  8e8f428bcff14e32e2a012ebcfbe11c0f18fddf1a6e336500c59b82327d68b09.enc
+and tell them the above Data Capsule ID!
+
+/home/sumit/phd-uottawa-research/Research/Experimentation/TEEKAP
+kill: (9001): No such process
+Captured bytes: 8845
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ ./data_transfer_net_com.sh  ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_60_attr.pem 
+Arguments provided: 
+ - inputfile_name        = ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_60_attr.pem
+ - enclave_policy_file          = enclave_policy.json
+ - access_committee_leader_ip   = 127.0.0.1
+ - access_committee_leader_port = 9001
+ - storage_server_ip     = 127.0.0.1
+ - storage_server_port   = 10001
+
+Reading enclave policy ... 
+Provided enclave policy:
+ - mrsigner = 8968a99b56e2dba5644381863c42e018696bbf8db079a43ddb4437740974b004
+ - mrenclave = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+Enclaves with the above MRENCLAVE can access your secret data! 
+
+Let's specify the expiry conditions for your secret data.
+Please input access limit: 50
+You input is: 50 times
+Please specify how soon your data exists (in days): 1
+You input is: 1 days, that is, your data expires on Thu Apr 25 20:29:39 2024
+Data-Owner: [24-04-2024 20:29:39.430260] Start creating the data-capsule
+Connecting to Access Commitee Leader ...
+Connected!
+Obtained cluster configuration: 
+ - leader_id = 1
+ - num_of_nodes = 3
+ - endpoints = {"1":"127.0.0.1:9001","2":"127.0.0.1:9002","3":"127.0.0.1:9003"}
+Random encryption key: )�w�K�(�1-x8�Y���GB��� ��;L��]���
+Encrypting your file ( ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_60_attr.pem ) ...
+sha256sum of the encrypted file: 6c2c43d64c96a3c3d89c68930e0e905be279b07527b3ec9876e475b50bf75315
+Secret-sharing your encryption key using the (3-2) scheme
+
+
+Key (HEX)   : 2917d377ca4ba328a2312d1e7838c259e7f6d047429cb8be20be823b4ccf08af
+Size (bits) : 256
+
+---------------------------------------------------
+Leader node info: 
+ - server_id = 1
+ - endpoint (ip:http_port) = 127.0.0.1:9001
+---------------------------------------------------
+
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9001"
+Node endpoint (ip:http_port) is : "127.0.0.1:9002"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9003"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Data-Owner: [24-04-2024 20:29:39.434051] Ended creating the data-capsule
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Data Capsule created! Here are the details:
+
+Secret data to be protected: ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_60_attr.pem
+
+Data Capsule ID: 6c2c43d64c96a3c3d89c68930e0e905be279b07527b3ec9876e475b50bf75315
+
+Expiry Conditions: 
+  - Access limit : 50
+  - Expires on   : Thu Apr 25 20:29:39 2024
+
+Apps that can access the secret data: 
+  MRENLCAVE = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+To let others use your secret data, share with them or ask them to download 
+the data capsule file with the following name: 
+  6c2c43d64c96a3c3d89c68930e0e905be279b07527b3ec9876e475b50bf75315.enc
+and tell them the above Data Capsule ID!
+
+/home/sumit/phd-uottawa-research/Research/Experimentation/TEEKAP
+kill: (9001): No such process
+Captured bytes: 8599
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ ./data_transfer_net_com.sh  ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_80_attr.pem 
+Arguments provided: 
+ - inputfile_name        = ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_80_attr.pem
+ - enclave_policy_file          = enclave_policy.json
+ - access_committee_leader_ip   = 127.0.0.1
+ - access_committee_leader_port = 9001
+ - storage_server_ip     = 127.0.0.1
+ - storage_server_port   = 10001
+
+Reading enclave policy ... 
+Provided enclave policy:
+ - mrsigner = 8968a99b56e2dba5644381863c42e018696bbf8db079a43ddb4437740974b004
+ - mrenclave = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+Enclaves with the above MRENCLAVE can access your secret data! 
+
+Let's specify the expiry conditions for your secret data.
+Please input access limit: 50
+You input is: 50 times
+Please specify how soon your data exists (in days): 1
+You input is: 1 days, that is, your data expires on Thu Apr 25 20:31:04 2024
+Data-Owner: [24-04-2024 20:31:04.263004] Start creating the data-capsule
+Connecting to Access Commitee Leader ...
+Connected!
+Obtained cluster configuration: 
+ - leader_id = 1
+ - num_of_nodes = 3
+ - endpoints = {"1":"127.0.0.1:9001","2":"127.0.0.1:9002","3":"127.0.0.1:9003"}
+Random encryption key: @!(��Оu4E�^�
+Encrypting your file ( ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_80_attr.pem ) ...
+sha256sum of the encrypted file: 77863e277468af36fb857a63e4a6c5b9e20647575de88632c1b4bc52559d5824
+Secret-sharing your encryption key using the (3-2) scheme
+
+
+Key (HEX)   : 402128b5b9d09e753445875ec4005e507a5a85ec3d679784aa63c232a2ccb792
+Size (bits) : 256
+
+---------------------------------------------------
+Leader node info: 
+ - server_id = 1
+ - endpoint (ip:http_port) = 127.0.0.1:9001
+---------------------------------------------------
+
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9001"
+Node endpoint (ip:http_port) is : "127.0.0.1:9002"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9003"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Data-Owner: [24-04-2024 20:31:04.266907] Ended creating the data-capsule
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Data Capsule created! Here are the details:
+
+Secret data to be protected: ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_80_attr.pem
+
+Data Capsule ID: 77863e277468af36fb857a63e4a6c5b9e20647575de88632c1b4bc52559d5824
+
+Expiry Conditions: 
+  - Access limit : 50
+  - Expires on   : Thu Apr 25 20:31:04 2024
+
+Apps that can access the secret data: 
+  MRENLCAVE = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+To let others use your secret data, share with them or ask them to download 
+the data capsule file with the following name: 
+  77863e277468af36fb857a63e4a6c5b9e20647575de88632c1b4bc52559d5824.enc
+and tell them the above Data Capsule ID!
+
+/home/sumit/phd-uottawa-research/Research/Experimentation/TEEKAP
+kill: (9001): No such process
+Captured bytes: 8845
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ ./data_transfer_net_com.sh  ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_100_attr.pem 
+Arguments provided: 
+ - inputfile_name        = ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_100_attr.pem
+ - enclave_policy_file          = enclave_policy.json
+ - access_committee_leader_ip   = 127.0.0.1
+ - access_committee_leader_port = 9001
+ - storage_server_ip     = 127.0.0.1
+ - storage_server_port   = 10001
+
+Reading enclave policy ... 
+Provided enclave policy:
+ - mrsigner = 8968a99b56e2dba5644381863c42e018696bbf8db079a43ddb4437740974b004
+ - mrenclave = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+Enclaves with the above MRENCLAVE can access your secret data! 
+
+Let's specify the expiry conditions for your secret data.
+Please input access limit: 50
+You input is: 50 times
+Please specify how soon your data exists (in days): 1
+You input is: 1 days, that is, your data expires on Thu Apr 25 20:32:37 2024
+Data-Owner: [24-04-2024 20:32:37.574625] Start creating the data-capsule
+Connecting to Access Commitee Leader ...
+Connected!
+Obtained cluster configuration: 
+ - leader_id = 1
+ - num_of_nodes = 3
+ - endpoints = {"1":"127.0.0.1:9001","2":"127.0.0.1:9002","3":"127.0.0.1:9003"}
+Random encryption key: R�w�`��s��P�     O��O�M�
+Encrypting your file ( ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_100_attr.pem ) ...
+sha256sum of the encrypted file: 5ba3bf050a1e9ea303cb57ab74577260b0160ab7d4911fe3063596d66998a6ef
+Secret-sharing your encryption key using the (3-2) scheme
+
+
+Key (HEX)   : 0752b677ac60dbc17387b70550f3094f9b994fc04ddc00bea6eb1610a391ed2b
+Size (bits) : 256
+
+---------------------------------------------------
+Leader node info: 
+ - server_id = 1
+ - endpoint (ip:http_port) = 127.0.0.1:9001
+---------------------------------------------------
+
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9001"
+Node endpoint (ip:http_port) is : "127.0.0.1:9002"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Node endpoint (ip:http_port) is : "127.0.0.1:9003"
+Connecting to Access Commitee node 127.0.0.1 ...
+Connecting to Access Commitee node 127.0.0.1 ...
+Connected to node 127.0.0.1!
+Connected to node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Done on node 127.0.0.1!
+Data-Owner: [24-04-2024 20:32:37.578621] Ended creating the data-capsule
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Data Capsule created! Here are the details:
+
+Secret data to be protected: ../../../../../data_rotting/Implementation/data-rotting/test/test_data_creater/data_cert_discrete/sample_do_data_100_attr.pem
+
+Data Capsule ID: 5ba3bf050a1e9ea303cb57ab74577260b0160ab7d4911fe3063596d66998a6ef
+
+Expiry Conditions: 
+  - Access limit : 50
+  - Expires on   : Thu Apr 25 20:32:37 2024
+
+Apps that can access the secret data: 
+  MRENLCAVE = 003f7a148d25c2b3fe3033284aca148bfd40d34a7384882bc3ebb51cb40d8b7a
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+To let others use your secret data, share with them or ask them to download 
+the data capsule file with the following name: 
+  5ba3bf050a1e9ea303cb57ab74577260b0160ab7d4911fe3063596d66998a6ef.enc
+and tell them the above Data Capsule ID!
+
+/home/sumit/phd-uottawa-research/Research/Experimentation/TEEKAP
+kill: (9001): No such process
+Captured bytes: 8845
+sumit@SGXDC4sv3:~/phd-uottawa-research/Research/Experimentation/TEEKAP$ 
