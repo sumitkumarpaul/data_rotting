@@ -1,25 +1,59 @@
 # ROT: Retention and Operation limitation using TEE
-This repository contains all the code and other materials required for TEE based data_rotting mechanisms. This is a test..
+This repository contains the prototype implementation of the $ROT$, which provides *Retention and Operation limitation of private data using TEE*.
 
-# 1. Setup the environment
-## 1.1. Setting up compilation environment
+The involved parties in $ROT$ are, a data-owner ($DO$), a data-user ($DU$) and a trusted library ($Lib_{Enc}$). Only $DU$ requires an environment having support of the, Trusted Execution Environment (TEE) and others do not require TEE. **Intel-SGX** is used as the underlying TEE. Specifically, for performing all our development, experimentation and performance measurement purpose, we use an SGX-enabled instance, [DC4SV3](https://learn.microsoft.com/en-us/azure/virtual-machines/dcv3-series) in Microsoft Azure cloud. We use **Ubuntu-20.04** Operating System, in that environment. $ROT$ is mainly implemented in ***C*** and ***C++***-programming languages. This implementation is dependent on [Intel-SGX-SDK](https://github.com/intel/linux-sgx). 
 
-## 1.2. Setting up DCAP Attestation Service for Intel SGX
-TODO: Check the
+## 1. How to create the system?
+Intel-SGX enabled VM can be created in Microsoft-Azure, by following [this guide line](https://learn.microsoft.com/en-us/azure/confidential-computing/quick-create-portal). After creating the system, enable the remote attestation by following [this link](https://learn.microsoft.com/en-us/azure/attestation/quickstart-powershell). This [text](https://learn.microsoft.com/en-us/azure/security/fundamentals/trusted-hardware-identity-management) might also be useful.
+
+If you already have a SGX-enabled system, then this step is not required.
+
+## 2. How to prepare the system?
+A simple working environment can be created by running all the involved parties (i.e., $DO$, $Lib_{Enc}$ and $DU$) on the same enviroment and enable communication among themselves using local loopback interface. However, internet reachability of is required for the environment, otherwise the remote-attestation procedure may fail.
+
+$ROT$ is developed using *Intel-SGX-SDK*. So, at first please install and setup *Intel-SGX-SDK* in the new system by following [this guide](https://github.com/intel/linux-sgx).
+
+### 2.1. Verify installation and setup
+
+Before proceeding further, it is now important to verify that everything setup till now are fine. Specifically, it is important to ensure that an *enclave* can run in the system in hardware mode. Moreover, it must be ensured that, that the remote attestation works properly with that *enclave*.
+
+To verify these, run *Intel-SGX-SDK*'s inbuilt attestated-TLS related examples in the newly set environment. Detailed steps regarding how to run those, can be found [here](https://github.com/intel/linux-sgx/tree/main/SampleCode/SampleAttestedTLS).
 
 
-# 2. How to compile
-A single makefile is required to compile the entire thing
+## 3. How to run $ROT$?
+Now we have to compile and run individual parties of $ROT$. To do so, a set of commands are required to be issued in multiple terminals. Following are the details. It assumes that *Intel-SGX-SDK* is installed in the following path: */opt/intel/sgxsdk/*. If it is installed in some other path, then modify the issued commands accordingly.
 
-## 2.1 How to compile for normal demonstration purpose
+### 3.1 Prepare $Lib_{Enc}$
 
-## 2.1 How to compile for measuring performance
+First compile a sample *enclave* and store that in $Lib_{Enc}$. To do so, open a new terminal *(Call it T1)* and issue the following commands:
 
-# 3. How to run
+```
+source /opt/intel/sgxsdk/environment
+cd libenc/enclave_collections/srcs
+./update_libenc.sh 2
+```
+Then follow the on screen instruction. Namely, locate the hexadecimal string in the ./tmp.dump file specifying MRENCLAVE value. Then copy that to the index 2 location of the global arrary *g_enc_details[]*, specified in *../../src/libenc_enc_info.h* file.
 
-## 3.1 Compile and run LibEnc
+```
+:
+enc_details g_enc_details[] = {
+    {
+        0,
+        :
+    },
+    :
+    {
+        2,
+        :
+        "0x81 0xd7 0x87 0xe1 0x33 0x3a 0xd9 0x21 0x12 0xea 0x80 0x70 0x92 0xf9 0x02 0xbc \n\
+0xa7 0xf7 0x2a 0xb1 0x82 0xce 0xf6 0x14 0x0d 0x8a 0x7b 0x9e 0x9e 0x83 0x57 0x5e \n",/* Do not indent this line */
+        :
+    }
+};
+```
+### 3.2 Compile and run $Lib_{Enc}$
 
-Open a new terminal *(Call it T1)* and issue the following commands:
+Now, in $Lib_{Enc}$'s terminal, *(i.e., in T1)* and issue the following commands to compile and run $Lib_{Enc}$.
 
 ```
 cd libenc;source /opt/intel/sgxsdk/environment;make clean;make; cd -;libenc/libenc 127.0.0.1 1234
@@ -34,7 +68,7 @@ cc  ./src/libenc_main.o ./src/libenc_debug.o -o libenc
 /home/sumit/data_rotting/Implementation/data-rotting
 ```
 
-## 3.2 Compile and run DataUser in *usage approval* stage
+### 3.3 Compile and run Data-user in *usage approval* stage
 
 Open another new terminal *(Call it T2)* and issue the following commands:
 
@@ -55,7 +89,7 @@ mv src/host/data-user .
 
 ```
 
-## 3.3 Compile and run DataOwner
+### 3.4 Compile and run Data-owner
 
 Open another new terminal *(Call it T3)* and issue the following commands:
 
@@ -90,7 +124,6 @@ Following is the description of enclave(2), fetched from LibEnc:
 This enclave accesses all the data present within the personal information file. This is for performance measurement
 
 Do you agree with it?, please provide a valid answer: [y or n]: 
-Do you agree with it?, please provide a valid answer: [y or n]: 
 
 
 
@@ -105,7 +138,7 @@ DO: [22-04-2024 16:18:54.867662] Successfully completed data-provision stage
 Do not worry about, if the following error is shown: 
 `Azure Quote Provider: libdcap_quoteprov.so [ERROR]: Could not retrieve environment variable for 'AZDCAP_DEBUG_LOG_LEVEL'`
 
-In the meantime, the following should be shown in the data_user's terminal (i.e., in T2):
+In the meantime, the following should be shown in the data_user's terminal *(i.e., in T2)*:
 
 ```
 :
@@ -114,7 +147,7 @@ Succeed.
 [ENC.] [22-04-2024 16:18:54.899033] Calculated expiry block number is: 19712090
 ```
 
-## 3.3 Run DataUser in *Data Usage* stage
+### 3.5 Run Data-user in *Data Usage* stage
 
 Go back to the data_user's terminal *(i.e., in T2)* and issue the following commands:
 
@@ -147,22 +180,12 @@ DU: [22-04-2024 16:21:35.642784] Data-user: Stop accessing the sealed-data
 DU: [22-04-2024 16:21:35.642797] Data accessed successfully, the result of evaluation is: -1, return from enclave is = 0
 ```
 
-## 3.4 Clean everything
+### 3.6 Clean everything
 
-Go to the LibEnc's terminal (i.e., in T1) and close that (by using ^c command).
+Go to the $Lib_{Enc}$'s terminal *(i.e., in T1)* and close that (by using ^c command).
 
 To clean all the created materials, issue the following commands in the root directory:
 
 ```
-cd time-server;make clean; cd -;cd libenc/; make clean; cd -;cd data-owner/; make clean; cd -;cd data-user ;make clean ENC_SRC_NAME=enclave_2_src; cd -
+cd -;cd libenc/; make clean; cd -;cd data-owner/; make clean; cd -;cd data-user ;make clean ENC_SRC_NAME=enclave_2_src; cd -
 ```
-
-## 3.1 Run libenc
-
-## 3.2 Run data user in data procurement mode
-
-## 3.3 Run data owner
-
-## 3.4 Run data user in data access mode
-
-# 4. How to measure performance
