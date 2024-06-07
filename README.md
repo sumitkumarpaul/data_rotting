@@ -9,11 +9,43 @@ Intel-SGX enabled VM can be created in Microsoft-Azure, by following [this guide
 If you already have a SGX-enabled system, then this step is not required.
 
 ## 2. How to prepare the system?
-A simple working environment can be created by running all the involved parties (i.e., $DO$, $Lib_{Enc}$ and $DU$) on the same enviroment and enable communication among themselves using local loopback interface. However, internet reachability of is required for the environment, otherwise the remote-attestation procedure may fail.
+A simple working environment can be created by running all the involved parties (i.e., $DO$, $Lib_{Enc}$ and $DU$) on the same enviroment and enable communication among themselves using local loopback interface. However, internet reachability of is required for the environment, for the blockchain access and the proper working of remote-attestation procedure.
 
-$ROT$ is developed using *Intel-SGX-SDK*. So, at first please install and setup *Intel-SGX-SDK* in the new system by following [this guide](https://github.com/intel/linux-sgx).
+### 2.1. Install Intel-SGX-SDK
+$ROT$ is developed using *Intel-SGX-SDK version: 2.21.100.1*. It can be compiled from its source code of prover version and installed in the new system by following [this guide](https://github.com/intel/linux-sgx). Or, its pre-built binary installer can be downloaded from [here](https://download.01.org/intel-sgx/sgx-linux/2.21/distro/ubuntu20.04-server/sgx_linux_x64_sdk_2.21.100.1.bin).
 
-### 2.1. Verify installation and setup
+***Note:*** If you are using the pre-built binary, then you need to install a few supporting software using the following command.
+
+```
+sudo apt-get update
+sudo apt-get install -y build-essential ocaml ocamlbuild automake autoconf libtool wget python-is-python3 libssl-dev git cmake perl libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev debhelper cmake reprepro unzip pkgconf libboost-dev libboost-system-dev libboost-thread-dev lsb-release libsystemd0
+```
+
+### 2.2. Install Intel-SGX platform software
+Required platform packages must be installed from a local repo in the system. This local repo can be created by compiling its source code according to this [information](https://github.com/intel/linux-sgx?tab=readme-ov-file#build-the-intelr-sgx-psw-and-intelr-sgx-psw-installer). Alternatively, pre-built repo can be downloaded from [here](https://download.01.org/intel-sgx/sgx-linux/2.21/distro/ubuntu20.04-server/sgx_debian_local_repo.tgz).
+
+Then add the local repo to the system repository configuration, append the following line to /etc/apt/sources.list. You need to replace PATH_TO_LOCAL_REPO with the proper path on your system:
+
+```
+deb [trusted=yes arch=amd64] file:/PATH_TO_LOCAL_REPO focal main
+```
+Then issue the following commands to install the *psw* packages.
+```
+sudo apt-get update
+sudo apt-get install -y libsgx-launch libsgx-urts libsgx-quote-ex libsgx-dcap-ql
+```
+
+### 2.3. Setup DCAP
+Then fetch the required certificates from Intel issue the following commands:
+```
+echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list > /dev/null
+wget -O - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+sudo apt update
+sudo apt-get install libsgx-dcap-default-qpl
+```
+$ROT$ uses, Intel-Data Center Attestation Primitives, Intel-DCAP. If you are using Microsoft Azure, then use [this guide](https://learn.microsoft.com/en-us/azure/security/fundamentals/trusted-hardware-identity-management#how-do-i-use-intel-qpl-with-trusted-hardware-identity-management) to setup DCAP. In other Intel-SGX environment, you may refer [this](https://www.intel.com/content/www/us/en/developer/articles/guide/intel-software-guard-extensions-data-center-attestation-primitives-quick-install-guide.html).
+
+### 2.4. Verify installation and setup
 
 Before proceeding further, it is now important to verify that everything setup till now are fine. Specifically, it is important to ensure that an *enclave* can run in the system in hardware mode. Moreover, it must be ensured that, that the remote attestation works properly with that *enclave*.
 
@@ -21,6 +53,11 @@ To verify these, run *Intel-SGX-SDK*'s inbuilt attestated-TLS related examples i
 
 
 ## 3. How to run $ROT$?
+First download the source code of $ROT$ and go to the required directory by issuing the following command:
+```
+git clone https://github.com/sumitkumarpaul/data_rotting.git
+cd data_rotting/Implementation/data-rotting/
+```
 Now we have to compile and run individual parties of $ROT$. To do so, a set of commands are required to be issued in multiple terminals. Following are the details. It assumes that *Intel-SGX-SDK* is installed in the following path: */opt/intel/sgxsdk/*. If it is installed in some other path, then modify the issued commands accordingly.
 
 ### 3.1 Prepare $Lib_{Enc}$
@@ -31,6 +68,7 @@ First compile a sample *enclave* and store that in $Lib_{Enc}$. To do so, open a
 source /opt/intel/sgxsdk/environment
 cd libenc/enclave_collections/srcs
 ./update_libenc.sh 2
+cd ../../../
 ```
 Then follow the on screen instruction. Namely, locate the hexadecimal string in the ./tmp.dump file specifying MRENCLAVE value. Then copy that to the index 2 location of the global arrary *g_enc_details[]*, specified in *../../src/libenc_enc_info.h* file.
 
@@ -138,7 +176,7 @@ DO: [22-04-2024 16:18:54.867662] Successfully completed data-provision stage
 Do not worry about, if the following error is shown: 
 `Azure Quote Provider: libdcap_quoteprov.so [ERROR]: Could not retrieve environment variable for 'AZDCAP_DEBUG_LOG_LEVEL'`
 
-In the meantime, the following should be shown in the data_user's terminal *(i.e., in T2)*:
+In the meantime, something like the following should be shown in the data_user's terminal *(i.e., in T2)*:
 
 ```
 :
@@ -151,7 +189,9 @@ Succeed.
 
 Go back to the data_user's terminal *(i.e., in T2)* and issue the following commands:
 
-`data-user/data-user access-data 127.0.0.1 1240`
+```
+data-user/data-user access-data 127.0.0.1 1240
+```
 
 The following should be shown:
 
@@ -166,9 +206,11 @@ DU: [22-04-2024 16:19:23.918320] Data accessed successfully, the result of evalu
 
 Then wait for more than 1 minute and issue the same command again:
 
-`data-user/data-user access-data 127.0.0.1 1240`
+```
+data-user/data-user access-data 127.0.0.1 1240
+```
 
-The following should be shown:
+Something like the following should be shown:
 
 ```
 data-user/data-user access-data 127.0.0.1 1240

@@ -13,6 +13,8 @@ fi
 
 echo "Updating libenc with the updated information of enclave: $enc_id"
 
+sudo apt-get install -y zip
+
 LIBENC_SRC_FOLDER="../.."
 ENC_SRC_FOLDER="enclave_"$enc_id"_src"
 ENC_SRC_OP_FOLDER="enclave_"$enc_id"_src/enclave"
