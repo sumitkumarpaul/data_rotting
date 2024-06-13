@@ -76,7 +76,6 @@ int du_verify_mrenclave(const char* exp_value)
     int i;
     int loc;
 
-	//bzero(g_buffer, DU_BUF_SZ);
     snprintf(g_buffer, DU_BUF_SZ, "sgx_sign dump -enclave %s -dumpfile ./.tmp.dump > /dev/null\n", DU_RCV_SIGNED_ENC_PATH);
     /* Generate a temporary file using sgx_enclave dump command */
     if (system(g_buffer) < 0)
@@ -159,7 +158,6 @@ int du_verify_enc(int enc_id)
     }
 
     /* Send command for getting MRENCLAVE */
-    //bzero(g_buffer, DU_BUF_SZ);
     cmd_sz = snprintf(g_buffer, DU_BUF_SZ, "GET-MRENCLAVE %d ", enc_id);
     
     if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -221,7 +219,6 @@ int du_get_edl_file(int enc_id)
     }
 
     /* Send command for getting EDL file */
-    //bzero(g_buffer, DU_BUF_SZ);
     cmd_sz = snprintf(g_buffer, DU_BUF_SZ, "GET-EDL %d ", enc_id);
     
     if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -280,8 +277,6 @@ int du_recv_file(int conn_sock, const char* file_path)
         print_log(DEBUG_LEVEL_ERROR, "While creating the empty file\n");
         goto error_handling;
     }
-        
-    //bzero(g_buffer, DU_BUF_SZ);
 
     /* First read the file size */
     if(recv(conn_sock, g_buffer, DU_BUF_SZ, 0) < 0)
@@ -311,8 +306,6 @@ int du_recv_file(int conn_sock, const char* file_path)
     
     while (recv_sz != file_sz)
     {
-        //bzero(g_buffer, DU_BUF_SZ);
-
         cur_recv_sz = recv(conn_sock, g_buffer, DU_BUF_SZ, 0);
 
         if(cur_recv_sz < 0)
@@ -376,8 +369,6 @@ int du_send_file(int conn_sock, const char* file_path)
 	file_sz = ftell(fp); // get current file pointer
 	fseek(fp, 0, SEEK_SET); // seek back to beginning of file
 
-	//bzero(g_buffer, DU_BUF_SZ);
-
     /* Convert the file-size to string */
     str_sz = snprintf(g_buffer, DU_BUF_SZ, "%d", file_sz);
 
@@ -398,8 +389,6 @@ int du_send_file(int conn_sock, const char* file_path)
 
 	while (send_sz != file_sz)
 	{
-		//bzero(g_buffer, DU_BUF_SZ);
-
 		read_sz = fread(g_buffer, 1, DU_BUF_SZ, fp);
 
         cur_send_sz = 0;
@@ -528,8 +517,6 @@ int du_process_srv_req(void)
         print_log(DEBUG_LEVEL_INFO, "Connected with: %s:%d\n", inet_ntoa(do_addr.sin_addr), ntohs(do_addr.sin_port));
     }
 
-    //bzero(g_buffer, DU_BUF_SZ);
-
     /* Send the data-user's certificate  */
     if (du_send_file(do_sock, DU_CERT_FILE_PATH) != 0)
     {
@@ -612,24 +599,6 @@ int du_process_srv_req(void)
     }
   
     print_log(DEBUG_LEVEL_INFO, "Successfully verified the signed enclave sent by data-owner\n");
-
-#if 0/* Ideally, this step is not required,
-        so commented out. In normal situation
-        the data-user should know about the
-        OCALL requirement of the "tobe executed"
-        enclave and prepare accordingly. */ 
-    
-    /* Get the edl file */ 
-    ret = du_get_edl_file(g_du_business_logics[sr_id].enc_id);
-    
-    if (ret < 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "During reception of edl file\n");
-        goto error_handling;
-    }
-    
-    print_log(DEBUG_LEVEL_INFO, "Make sure mentioned OCALLs mentioned in *.edl file are\npresent before deploying the enclave.");
-#endif
     
     /* Deploy enclave and notify data-owner */
     if (du_deploy_enc_notify_do(do_sock) < 0)
@@ -642,6 +611,7 @@ int du_process_srv_req(void)
     print_log(DEBUG_LEVEL_INFO, "Successfully deployed the signed enclave and notified the listening IP and port to the data-owner\n");
     
     sleep(5);
+
 error_handling:
     /* Free the connection socket with data-owner */
     if (do_sock > 0)
@@ -713,9 +683,6 @@ int du_deploy_enc_notify_do(int do_sock)
         print_log(DEBUG_LEVEL_ERROR, "Problem during setup of the received enclave: %s\n", DU_RCV_SIGNED_ENC_PATH);
         goto error_handling;
     }
-
-    /* For the time being, this is a dummy function */
-    //bzero(g_buffer, DU_BUF_SZ);
         
     cmd_sz = snprintf(g_buffer, DU_BUF_SZ, "%s  %s ", g_enc_ip, g_enc_port);
     

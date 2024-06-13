@@ -212,7 +212,7 @@ int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port,
             print_log(DEBUG_LEVEL_ERROR, "Host: setup_tls_server failed\n");
             goto exit;
         }
-#if 1
+
         /* Decrypt the symmetric-key with public-key of DU */
         if (du_pub_decrypt(g_pub_enc_sk_buff, cipher_text_size, g_buffer, &plain_text_size) < 0)
         {
@@ -239,14 +239,10 @@ int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port,
         {
             fclose(fp);
         }
-#endif
  
         /* Child process should exit */
         exit(0);
     }
-
-    /* Parent process */
-    //sleep(2);
 
     ret = 0;
 exit:
@@ -271,9 +267,6 @@ int du_access_do_priv_data(void)
         goto exit;
     }
   
-    //enc_result = ecall_check_personal_loan_eligibility(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ, g_ts_ip, g_ts_port);
-    //enc_result = ecall_check_personal_loan_eligibility(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ, g_ts_ip, g_ts_port);
-        
     print_log(DEBUG_LEVEL_INFO, "Data-user: Start accessing the sealed-data\n");
     
     enc_result = ecall_enc_access_all_data(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ, g_bc_ip);
@@ -286,11 +279,8 @@ int du_access_do_priv_data(void)
     
     print_log(DEBUG_LEVEL_INFO, "Data-user: Before decrypting the result\n");
    
-#if 1/* Decrypt it using symmetric-key */
     if (du_sym_decrypt(g_buffer, encypted_result_sz, ptxt_result, &ptxt_result_sz) < 0)
-#else 
-    if (du_pub_decrypt(g_buffer, encypted_result_sz, ptxt_result, &ptxt_result_sz) < 0)
-#endif
+
     {
         print_log(DEBUG_LEVEL_ERROR, "Host: problem during data-access\n");
         goto exit;
@@ -315,15 +305,6 @@ void du_destroy_enc()
 
     print_log(DEBUG_LEVEL_INFO, "Host: calling sample ecall with dummy parameters\n");
 
-#if 0/* This dummy function call is no more required */
-    result = enclave_0_ecall_0(enclave_global_eid, &ret, 2, 3);
-    if (result != SGX_SUCCESS || ret < 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Host: enclave_0_ecall_0 failed\n");
-    }
-
-    print_log(DEBUG_LEVEL_INFO, "Host: Got return from enclave = %d\n", ret);
-#endif
     print_log(DEBUG_LEVEL_INFO, "Host: Terminating enclaves\n");
 
     result = ecall_tear_down_tls_server(enclave_global_eid, &dummy);
@@ -560,6 +541,7 @@ int du_set_do_cert()
 
     ret = 0;
     print_log(DEBUG_LEVEL_INFO, "Successfully set the data-owner's certificate to the enclave\n");
+    
 exit:
     if (fp != NULL)
     {

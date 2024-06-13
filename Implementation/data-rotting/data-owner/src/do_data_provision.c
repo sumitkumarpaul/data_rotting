@@ -52,54 +52,6 @@ int do_data_provision_stage(char* server_name, char* server_port)
         
     print_log(DEBUG_LEVEL_INFO, "Successfully established TLS connection with the enclave..!!\n");
 
-#if 0/* There is no DO authentication with Enclave */
-    /* Receive the encrypted nonce */
-    recv_data_sz = do_ssl_recv_data(g_ssl, g_buffer);
-
-    if(recv_data_sz <= 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Error during receiving the encrypted nonce");
-        goto exit;
-    }
-    
-    print_log(DEBUG_LEVEL_INFO, "Successfully received the encrypted nonce from the enclave\n");
-       
-    /* Recover the plain-text nonce by applying the private key */ 
-    if (do_pri_decrypt(g_do_pri_key_file, g_buffer, recv_data_sz, g_recovered_nonce, &nonce_sz) != 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Problem during recover the plain-text nonce from the encrypted one..!!\n");
-        goto exit;
-    }
-
-    print_log(DEBUG_LEVEL_INFO, "Successfully recovered the palintext nonce by using public key\n");
-    
-    /* Send the plain-text nonce */
-    if (do_ssl_send_data(g_ssl, g_recovered_nonce, nonce_sz) <= 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Error during sending the plaintext-nonce..!!\n");
-        goto exit;
-    }
-    
-    print_log(DEBUG_LEVEL_INFO, "Successfully sent the recovered nonce\n");
-
-    /* Problem during reception of the acknowledgement  */
-    if(do_ssl_recv_data(g_ssl, g_buffer) <= 0)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Error during receiving the acknowledgement from the enclave\n");
-        goto exit;
-    }
-    else
-    {
-        if(strncmp("OK", g_buffer, 3) != 0)
-        {
-            print_log(DEBUG_LEVEL_ERROR, "Problem during verification of the nonce\n");
-            goto exit;
-        }
-    }
-    
-    print_log(DEBUG_LEVEL_INFO, "Enclave successfully verified the identity from recovered nonce\n");
-#endif
-
     if (do_ssl_send_file(g_ssl, DO_RCV_DU_CERT_FILE) != 0)
     {
         print_log(DEBUG_LEVEL_ERROR, "Error during sending the data-users certificate\n");

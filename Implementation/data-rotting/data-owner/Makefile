@@ -27,12 +27,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-#
-# TODO: What will be the copyright? This file is modified from original one
-# Ideally, this compilation should not depend on Intel SGX SDK. However, for
-# the time being, for demonstration proof of concept level, this dependency
-# is not removed.
 
 SGX_SDK ?= /opt/intel/sgxsdk
 SGX_COMMON_CFLAGS := -m64

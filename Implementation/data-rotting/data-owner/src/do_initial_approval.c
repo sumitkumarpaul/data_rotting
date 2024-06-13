@@ -33,7 +33,6 @@ int do_save_enc_details()
     int loc;
 
     /* Get the listening IP address and port number of the deployed enclave */
-    //bzero(g_buffer, DO_BUF_SZ);
     if(recv(g_du_sock, g_buffer, DO_BUF_SZ, 0) < 0)
     {
         print_log(DEBUG_LEVEL_ERROR, "Problem during receiving the listening IP and port of enclave\n");
@@ -45,7 +44,6 @@ int do_save_enc_details()
     strncpy(g_enc_port, strtok(NULL, " "), 6);
     print_log(DEBUG_LEVEL_INFO, "Received listening enclave's information. IP: %s, Port: %s\n", g_enc_ip, g_enc_port);
 
-	//bzero(g_buffer, DO_BUF_SZ);
     snprintf(g_buffer, DO_BUF_SZ, "sgx_sign dump -enclave %s -dumpfile ./.tmp.dump > /dev/null\n", DO_SIGNED_ENC_PATH);
 
     /* Generate a temporary file using sgx_enclave dump command */
@@ -88,7 +86,6 @@ int do_save_enc_details()
         /* 81 and 82 lines contain MRENCLAVE value */
         if ((i == 81) || (i == 82))
         {
-            //bzero(g_buffer, DO_BUF_SZ);
             line = fgets(g_buffer, DO_BUF_SZ, tmp_fp);
             
             if(EOF == fputs(g_buffer, mrenclave_fp))
@@ -99,7 +96,6 @@ int do_save_enc_details()
         }
         else if ((i == 141) || (i == 142))
         {
-            //bzero(g_buffer, DO_BUF_SZ);
             line = fgets(g_buffer, DO_BUF_SZ, tmp_fp);
             
             if(EOF == fputs(g_buffer, mrsigner_fp))
@@ -142,7 +138,7 @@ error_handling:
     return ret;
 }
 
-/* https://fm4dd.com/openssl/certverify.shtm  */
+/* Inspired from the example available at: https://fm4dd.com/openssl/certverify.shtm  */
 int do_verify_du_cert()
 {
     int ret = -1;
@@ -198,20 +194,13 @@ int do_verify_du_cert()
         print_log(DEBUG_LEVEL_ERROR, "Error loading cert into memory\n");
         goto exit;
     }
-#if 0
-    if(X509_STORE_load_locations(store, ca_bundlestr, NULL) != 1)
-    {
-        print_log(DEBUG_LEVEL_ERROR, "Error loading CA cert or chain file\n");
-        goto exit;
-    }
-#else
-    #warning Allowing self signed certificates for the data-users
+
+    /* Allowing self signed certificates for the experiment purpose */
     if(X509_STORE_add_cert(store, cert) != 1)
     {
         print_log(DEBUG_LEVEL_ERROR, "Error loading own certificate within the trusted store\n");
         goto exit;
     }
-#endif
 
     /* ---------------------------------------------------------- *
      * Initialize the ctx structure for a verification operation: *
@@ -292,7 +281,6 @@ int do_initial_approval_stage()
     print_log(DEBUG_LEVEL_INFO, "Verified the data-user's certificate file\n");
 
     /* Send requesting service request ID */
-    //bzero(g_buffer, DO_BUF_SZ);
     cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "%d \n", g_srv_req_id);
         
     if(send(g_du_sock, g_buffer, cmd_sz, 0) < 0)
@@ -302,7 +290,6 @@ int do_initial_approval_stage()
     }
 
     /* Print the data-requirement for availing this service */
-    //bzero(g_buffer, DO_BUF_SZ);
     if(recv(g_du_sock, g_buffer, DO_BUF_SZ, 0) < 0)
     {
         print_log(DEBUG_LEVEL_ERROR, "Problem during receiving response of service request\n");
@@ -407,11 +394,9 @@ int do_sign_and_send_enc(int enc_id)
     print_log(DEBUG_LEVEL_INFO, "Got unsigned enclave from LibEnc\n");
     
     /* Form the system command */
-	//bzero(g_buffer, DO_BUF_SZ);
-
-    /* Silently run the command */
     snprintf(g_buffer, DO_BUF_SZ, "sgx_sign sign -enclave %s -key %s -config %s -out %s > /dev/null 2>&1\n", DO_RCV_UNSIGNED_ENC_PATH, g_do_pri_key_file, DO_RCV_CNF_FILE_PATH, DO_SIGNED_ENC_PATH);
     
+    /* Silently run the command */
     /* Sign the received enclave file with private key */
     if (system(g_buffer) < 0)
     {

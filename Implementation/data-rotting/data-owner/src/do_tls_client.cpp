@@ -82,9 +82,7 @@ int do_ssl_recv_data(SSL* ssl, char* data_buf)
     int error = 0;
     int bytes_read = 0;
     int total_bytes_read = 0;
-        
-    //memset(data_buf, 0, DO_BUF_SZ);
-    
+
     do
     {
         bytes_read = SSL_read(ssl, &data_buf[total_bytes_read], (DO_BUF_SZ - total_bytes_read));
@@ -131,8 +129,6 @@ int do_ssl_recv_file(SSL* ssl, const char* file_path)
         goto error_handling;
     }
         
-    //bzero(g_buffer, DO_BUF_SZ);
-
     /* First read the file size */
     if(do_ssl_recv_data(ssl, g_buffer) < 0)
     {
@@ -158,8 +154,6 @@ int do_ssl_recv_file(SSL* ssl, const char* file_path)
     
     while (recv_sz != file_sz)
     {
-        //bzero(g_buffer, DO_BUF_SZ);
-
         cur_recv_sz = do_ssl_recv_data(ssl, g_buffer);
 
         if(cur_recv_sz < 0)
@@ -223,8 +217,6 @@ int do_ssl_send_file(SSL* ssl, const char* file_path)
 	file_sz = ftell(fp); // get current file pointer
 	fseek(fp, 0, SEEK_SET); // seek back to beginning of file
 
-	//bzero(g_buffer, DO_BUF_SZ);
-
     /* Convert the file-size to string */
     str_sz = snprintf(g_buffer, DO_BUF_SZ, "%d", file_sz);
 
@@ -245,8 +237,6 @@ int do_ssl_send_file(SSL* ssl, const char* file_path)
 
 	while (send_sz != file_sz)
 	{
-		//bzero(g_buffer, DO_BUF_SZ);
-
 		read_sz = fread(g_buffer, 1, DO_BUF_SZ, fp);
 
         cur_send_sz = 0;

@@ -69,8 +69,6 @@ int libenc_send_file_sz(int conn_sock, const char* file_path)
 		goto error_handling;
 	}
 	
-	//bzero(g_buffer, LIBENC_BUF_SZ);
-	
 	/* Get the file size */
 	fseek(fp, 0, SEEK_END); // seek to end of file
 	file_sz = ftell(fp); // get current file pointer
@@ -123,7 +121,6 @@ int libenc_send_file(int conn_sock, const char* file_path)
 	file_sz = ftell(fp); // get current file pointer
 	fseek(fp, 0, SEEK_SET); // seek back to beginning of file
 
-	//bzero(g_buffer, LIBENC_BUF_SZ);
     /* Convert the file-size to string */
     str_sz = snprintf(g_buffer, LIBENC_BUF_SZ, "%d", file_sz);
 
@@ -144,8 +141,6 @@ int libenc_send_file(int conn_sock, const char* file_path)
 
 	while (send_sz != file_sz)
 	{
-		//bzero(g_buffer, LIBENC_BUF_SZ);
-
 		read_sz = fread(g_buffer, 1, LIBENC_BUF_SZ, fp);
 	
         if (read_sz < 0)
@@ -273,8 +268,6 @@ int libenc_process_req(void)
 	{
 		print_log(DEBUG_LEVEL_INFO, "Connected with: %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 	}
-
-	//bzero(g_buffer, LIBENC_BUF_SZ);
 
 	if (recv(conn_sock, g_buffer, LIBENC_BUF_SZ, 0) < 0)
 	{

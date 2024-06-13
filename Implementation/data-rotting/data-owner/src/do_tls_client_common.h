@@ -1,5 +1,5 @@
-#ifndef TLS_CLIENT_H
-#define TLS_CLIENT_H
+#ifndef DO_TLS_CLIENT_COMMON_H
+#define DO_TLS_CLIENT_COMMON_H
 
 #include "sgx_utls.h"
 #include <openssl/ssl.h>
@@ -33,4 +33,4 @@ extern int do_ssl_send_file(SSL* ssl, const char* file_path);
 extern int do_start_tls_client(char* server_name, char* server_port, int& ssl_enc_sock, SSL_CTX** p_ctx, SSL** p_ssl);
 extern void do_stop_tls_client(int serversocket, SSL_CTX* ctx, SSL* ssl);
 
-#endif
+#endif /* DO_TLS_CLIENT_COMMON_H */

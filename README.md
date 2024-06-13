@@ -140,9 +140,6 @@ The following should be the outputs:
 rm -f data-owner ./src/data-owner-main.o ./src/do_tls_verify_callback.o ./src/do_tls_client.o ./src/do_initial_approval.o ./src/do_common.o ./src/do_tls_err_msg.o ./src/do_data_provision.o ./src/do_debug.o ./src/data-owner-main.d ./src/do_tls_verify_callback.d ./src/do_tls_client.d ./src/do_initial_approval.d ./src/do_common.d ./src/do_tls_err_msg.d ./src/do_data_provision.d ./src/do_debug.d
 rm -f ./materials/enc.*
 g++ -c -DCLIENT_USE_QVL -m64 -fPIC -Wno-attributes -I. -I/opt/intel/sgxsdk/include -I/usr/include/openssl  -DDEBUG -UNDEBUG -UEDEBUG -std=c++11 -DLOG_LEVEL=DEBUG_LEVEL_ERROR ./src/data-owner-main.c ./src/do_tls_verify_callback.cpp ./src/do_tls_client.cpp ./src/do_initial_approval.c ./src/do_common.c ./src/do_tls_err_msg.cpp ./src/do_data_provision.c ./src/do_debug.c
-./src/do_initial_approval.c:208:6: warning: #warning Allowing self signed certificates for the data-users [-Wcpp]
-  208 |     #warning Allowing self signed certificates for the data-users
-      |      ^~~~~~~
 mv *.o ./src/
 g++ -o data-owner ./src/data-owner-main.o ./src/do_tls_verify_callback.o ./src/do_tls_client.o ./src/do_initial_approval.o ./src/do_common.o ./src/do_tls_err_msg.o ./src/do_data_provision.o ./src/do_debug.o -m64 -L. -lssl -L/opt/intel/sgxsdk/lib64 -lsgx_urts -lsgx_utls -lsgx_dcap_ql -lsgx_dcap_quoteverify -lcrypto
 /home/sumit/data_rotting/Implementation/data-rotting
@@ -229,5 +226,5 @@ Go to the $Lib_{Enc}$'s terminal *(i.e., in T1)* and close that (by using ^c com
 To clean all the created materials, issue the following commands in the root directory:
 
 ```
-cd -;cd libenc/; make clean; cd -;cd data-owner/; make clean; cd -;cd data-user ;make clean ENC_SRC_NAME=enclave_2_src; cd -
+cd libenc/; make clean; cd -;cd data-owner/; make clean; cd -;cd data-user ;make clean ENC_SRC_NAME=enclave_2_src; cd -
 ```

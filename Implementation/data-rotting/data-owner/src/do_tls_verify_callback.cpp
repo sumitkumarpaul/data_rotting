@@ -121,10 +121,7 @@ int verify_callback(int preverify_ok, X509_STORE_CTX* ctx)
             der, der_len, current_time, &qv_result, &sup_data, (uint32_t *)&sup_data_len);
 
     print_log(DEBUG_LEVEL_INFO," After calling: tee_verify_certificate_with_evidence_host() \n");
-   //
-//#warning TODO: Added the following line to make the verification pass
-   //result = SGX_QL_SUCCESS;
-   // result != SGX_QL_SUCCESS means critical error
+
     if (result != SGX_QL_SUCCESS)
     {
         print_log(DEBUG_LEVEL_ERROR,TLS_CLIENT "Quote Verification Failed with result(%x) - \n", result);

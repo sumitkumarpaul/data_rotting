@@ -28,8 +28,6 @@ int do_recv_file(int conn_sock, const char* file_path)
         print_log(DEBUG_LEVEL_ERROR, "While creating the file: %s\n", file_path);
         goto error_handling;
     }
-        
-    //bzero(g_buffer, DO_BUF_SZ);
 
     /* First read the file size */
     if(recv(conn_sock, g_buffer, DO_BUF_SZ, 0) < 0)
@@ -56,8 +54,6 @@ int do_recv_file(int conn_sock, const char* file_path)
     
     while (recv_sz != file_sz)
     {
-        //bzero(g_buffer, DO_BUF_SZ);
-
         cur_recv_sz = recv(conn_sock, g_buffer, DO_BUF_SZ, 0);
 
         if(cur_recv_sz < 0)
@@ -121,8 +117,6 @@ int do_send_file(int conn_sock, const char* file_path)
 	file_sz = ftell(fp); // get current file pointer
 	fseek(fp, 0, SEEK_SET); // seek back to beginning of file
 
-	//bzero(g_buffer, DO_BUF_SZ);
-
     /* Convert the file-size to string */
     str_sz = snprintf(g_buffer, DO_BUF_SZ, "%d", file_sz);
 
@@ -143,8 +137,6 @@ int do_send_file(int conn_sock, const char* file_path)
 
 	while (send_sz != file_sz)
 	{
-		//bzero(g_buffer, DO_BUF_SZ);
-
 		read_sz = fread(g_buffer, 1, DO_BUF_SZ, fp);
 
         cur_send_sz = 0;
@@ -196,7 +188,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
     if(cmd == LIBENC_CMD_GET_DESC)
     {
         /* Send command for getting description */
-        //bzero(g_buffer, DO_BUF_SZ);
         cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "GET-DESC %d ", enc_id);
         
         if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -205,7 +196,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
             goto error_handling;
         }
 
-        //bzero(g_buffer, DO_BUF_SZ);
         if(recv(libenc_sock, g_buffer, DO_BUF_SZ, 0) < 0)
         {
             print_log(DEBUG_LEVEL_ERROR, "Problem during receiving response of GET-DESC\n");
@@ -215,7 +205,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
     else if(cmd == LIBENC_CMD_GET_MRENCLAVE)
     {
         /* Send command for getting MRENCLAVE */
-        //bzero(g_buffer, DO_BUF_SZ);
         cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "GET-MRENCLAVE %d ", enc_id);
         
         if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -224,7 +213,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
             goto error_handling;
         }
 
-        //bzero(g_buffer, DO_BUF_SZ);
         if(recv(libenc_sock, g_buffer, DO_BUF_SZ, 0) < 0)
         {
             print_log(DEBUG_LEVEL_ERROR, "Problem during receiving response of GET-MRENCLAVE\n");
@@ -234,7 +222,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
     else if(cmd == LIBENC_CMD_GET_ENC)
     {
         /* Send command for getting the enclave */
-        //bzero(g_buffer, DO_BUF_SZ);
         cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "GET-ENC %d ", enc_id);
         
         if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -253,7 +240,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
     else if(cmd == LIBENC_CMD_GET_EDL)
     {
         /* Send command for getting the EDL file */
-        //bzero(g_buffer, DO_BUF_SZ);
         cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "GET-EDL %d ", enc_id);
         
         if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
@@ -272,7 +258,6 @@ int do_cmd_rsp_with_libenc(const char* ip, int port, int cmd, int enc_id)
     else if(cmd == LIBENC_CMD_GET_CNF)
     {
         /* Send command for getting the configuration file */
-        //bzero(g_buffer, DO_BUF_SZ);
         cmd_sz = snprintf(g_buffer, DO_BUF_SZ, "GET-CNF %d ", enc_id);
         
         if(send(libenc_sock, g_buffer, cmd_sz, 0) < 0)
