@@ -519,7 +519,7 @@ exit:
     return ret;
 }
 
-int enc_process_data_provision(SSL* ssl, char *pub_enc_sk_buf, int *p_out_len)
+int enc_process_data_provision(SSL* ssl, char *pub_enc_sk_buf, int *p_out_len, in_addr_t bc_ip)
 {
     int ret = -1;
     int priv_data_sz = 0;
@@ -584,7 +584,7 @@ int enc_process_data_provision(SSL* ssl, char *pub_enc_sk_buf, int *p_out_len)
     enc_print_log(ENC_DEBUG_LEVEL_INFO,  "Sealed the data-owner's private data\n");
 
     /* Get current block number from the blockchain */
-    cur_bc_blk_num = enc_get_bc_cur_blk_num();
+    cur_bc_blk_num = enc_get_bc_cur_blk_num(bc_ip);
 
     if(cur_bc_blk_num <= 0)
     {

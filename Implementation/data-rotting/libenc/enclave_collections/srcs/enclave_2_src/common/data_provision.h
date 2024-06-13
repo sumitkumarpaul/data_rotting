@@ -27,7 +27,7 @@ int enc_send_encrypted_nonce(const char* do_pubk_pem, SSL* ssl);
 int enc_recv_plaintext_nonce(SSL* ssl);
 int enc_verify_do_private_data(const unsigned char* di_cert_der, int di_cert_len, const char* do_priv_data);
 int enc_seal_data(const char* seal_file, const char *data_buff, int data_size);
-int enc_process_data_provision(SSL* ssl, char *pub_enc_sk_buf, int *p_out_len);
+int enc_process_data_provision(SSL* ssl, char *pub_enc_sk_buf, int *p_out_len, in_addr_t bc_ip);
 int enc_sym_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *ciphertext, int *p_ciphertext_len);
 int enc_sym_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *plaintext, int *p_plaintext_len);
 

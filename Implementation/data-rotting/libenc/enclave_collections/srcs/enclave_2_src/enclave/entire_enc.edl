@@ -40,6 +40,6 @@ enclave {
 
     include "sgx_ttls.h"
     trusted {
-        public int ecall_enc_access_all_data([in, out, size=max_result_sz]char *result, [out]int *p_result_len, int max_result_sz, [in,string]const char* ts_server_ip, int ts_server_port);
+        public int ecall_enc_access_all_data([in, out, size=max_result_sz]char *result, [out]int *p_result_len, int max_result_sz, in_addr_t bc_ip);
     };
 };

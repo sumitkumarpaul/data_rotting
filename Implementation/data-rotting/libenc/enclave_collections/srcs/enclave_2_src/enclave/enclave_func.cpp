@@ -32,17 +32,14 @@
 #include "../common/data_access.h"
 #include "../common/data_provision.h"
 
-char g_ts_ip[16];
-int  g_ts_port;
-
 extern "C"
 {
-    int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz, char *ts_server_ip, int ts_server_port);
+    int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz, in_addr_t bc_ip);
 };
 
 char eligibility_str[200] = {0};
 
-int enc_access_all_data();
+int enc_access_all_data(in_addr_t bc_ip);
 
 int enc_check_SSN()
 {
@@ -77,7 +74,7 @@ exit:
     return ret;
 }
 
-int enc_access_all_data()
+int enc_access_all_data(in_addr_t bc_ip)
 {
     int ret = -1;
     X509* priv_data_x509 = NULL;
@@ -87,7 +84,7 @@ int enc_access_all_data()
 
     enc_print_log(ENC_DEBUG_LEVEL_INFO,  "Start accessing all the data\n");
     
-    priv_data_x509 = enc_private_data_file_open(ENC_DO_PRIV_DATA_FILE);
+    priv_data_x509 = enc_private_data_file_open(ENC_DO_PRIV_DATA_FILE, bc_ip);
 
     if (priv_data_x509 == NULL)
     {
@@ -155,7 +152,7 @@ exit:
     return ret;
 }
 
-int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz, char *ts_server_ip, int ts_server_port)
+int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz, in_addr_t bc_ip)
 {
     int ret = -1;
     X509* priv_data_x509 = NULL;
@@ -167,14 +164,10 @@ int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz
     strncpy(result_str, "0", sizeof("0"));
     *p_result_len = 0;
     
-    g_ts_port = ts_server_port; // convert to char* to int
-
-    memcpy(g_ts_ip, ts_server_ip, strnlen(ts_server_ip, 16));
-    
     enc_print_log(ENC_DEBUG_LEVEL_INFO, "Starting to evaluate the eligibility of data-owner for obtaining personal loan\n");
     
     /* Access all data */
-    enc_result = enc_access_all_data();
+    enc_result = enc_access_all_data(bc_ip);
     
     enc_print_log(ENC_DEBUG_LEVEL_INFO, "Result of the computation: %d\n", enc_result);
 

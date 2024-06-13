@@ -43,7 +43,7 @@ int g_client_socket_fd = -1;
 
 extern "C"
 {
-    int ecall_set_up_tls_server(const char* server_port, char *pub_enc_sk_buf, int *p_out_len, int max_result_sz, bool keep_server_up);
+    int ecall_set_up_tls_server(const char* server_port, in_addr_t bc_ip, char *pub_enc_sk_buf, int *p_out_len, int max_result_sz, bool keep_server_up);
     int ecall_tear_down_tls_server();
 	sgx_status_t ocall_close(int *ret, int fd);
 };
@@ -117,6 +117,7 @@ exit:
 }
 
 int handle_communication_until_done(
+    in_addr_t bc_ip,
     int& server_socket_fd,
     int& client_socket_fd,
     SSL_CTX*& ssl_server_ctx,
@@ -179,7 +180,7 @@ waiting_for_connection_request:
     }
 
     /* Start the data provision stage */
-    if(enc_process_data_provision(ssl_session, pub_enc_sk_buf, p_out_len) != 0)
+    if(enc_process_data_provision(ssl_session, pub_enc_sk_buf, p_out_len, bc_ip) != 0)
     {
         enc_print_log(ENC_DEBUG_LEVEL_ERROR,  "Problem during data-provision stage\n");
         goto exit;
@@ -194,7 +195,7 @@ exit:
     return ret;
 }
 
-int ecall_set_up_tls_server(const char* server_port, char *pub_enc_sk_buf, int *p_out_len, int max_result_sz, bool keep_server_up)
+int ecall_set_up_tls_server(const char* server_port, in_addr_t bc_ip, char *pub_enc_sk_buf, int *p_out_len, int max_result_sz, bool keep_server_up)
 {
     int ret = 0;
     unsigned int server_port_number;
@@ -234,6 +235,7 @@ int ecall_set_up_tls_server(const char* server_port, char *pub_enc_sk_buf, int *
 
     // handle communication
     ret = handle_communication_until_done(
+        bc_ip,
         g_server_socket_fd,
         g_client_socket_fd,
         g_ssl_server_ctx,

@@ -25,7 +25,7 @@
 #include "ts_verifier_info.h"
 #include "common.h"
 
-int enc_create_socket(char[]);
+int enc_create_socket(char[], in_addr_t bc_ip);
 int enc_ssl_recv_data(SSL* ssl, char* data_buf);
 int enc_ssl_send_data(SSL* ssl, const char* data_buf, int data_sz);
 
@@ -48,7 +48,7 @@ Content-Length:63\r\n\r\n\
 
 extern int close(int sockfd);
 
-static int enc_trusted_time_comparison();
+static int enc_trusted_time_comparison(in_addr_t bc_ip);
 static int enc_get_trusted_time(time_t *p_cur_trusted_tim);
 static int enc_verify_cb(int ok, X509_STORE_CTX *ctx);
 static int enc_create_ts_req(char* p_op_buf, int max_req_len, TS_REQ **p_ts_req);
@@ -62,7 +62,7 @@ static int enc_get_ts_resp(char *req_buf, char *resp_buf, int req_sz, int *p_rsp
 static int enc_send_buff_to_file(int conn_sock, char *buff, int buff_size);
 static int enc_recv_file_to_buf(int conn_sock, char *buff, int *p_recv_sz, int max_buf_sz);
 
-X509* enc_private_data_file_open(const char* data_file_path)
+X509* enc_private_data_file_open(const char* data_file_path, in_addr_t bc_ip)
 {
     FILE* fp = NULL;
     int pem_data_sz;
@@ -71,7 +71,7 @@ X509* enc_private_data_file_open(const char* data_file_path)
 
     enc_print_log(ENC_DEBUG_LEVEL_INFO, "Before expiry verification\n");
     
-    if (enc_check_data_expiry(ENC_DO_TIME_LIMIT_FILE) < 0)
+    if (enc_check_data_expiry(ENC_DO_TIME_LIMIT_FILE, bc_ip) < 0)
     {
         enc_print_log(ENC_DEBUG_LEVEL_ERROR, "Problem during opening the data-expiry date related file\n");
         goto exit;
@@ -226,7 +226,7 @@ exit:
     return ret;
 }
 
-int enc_check_data_expiry(const char* tim_lim_file)
+int enc_check_data_expiry(const char* tim_lim_file, in_addr_t bc_ip)
 {
     int ret = -1;
     FILE* fp = NULL;
@@ -239,7 +239,7 @@ int enc_check_data_expiry(const char* tim_lim_file)
         goto exit;
     }
 
-    if(enc_trusted_time_comparison() < 0)
+    if(enc_trusted_time_comparison(bc_ip) < 0)
     {
         enc_print_log(ENC_DEBUG_LEVEL_ERROR, "User provided personal data has expired\n");
         goto exit;
@@ -292,7 +292,7 @@ exit:
     return ret;
 }
 
-static int enc_trusted_time_comparison()
+static int enc_trusted_time_comparison(in_addr_t bc_ip)
 {
     int ret = -1;
     time_t cur_trusted_tim;
@@ -300,7 +300,7 @@ static int enc_trusted_time_comparison()
     int bc_cur_blk_num, bc_exp_blk_num;
     
     /* Get the trusted time from the blockchain */
-    bc_cur_blk_num = enc_get_bc_cur_blk_num();
+    bc_cur_blk_num = enc_get_bc_cur_blk_num(bc_ip);
         /* Get the trusted time from the block chain */
     if (bc_cur_blk_num <= 0)
     {
@@ -956,9 +956,9 @@ static in_addr_t inet_addr (const char *cp)
   return INADDR_NONE;
 }
 
-int enc_get_bc_cur_blk_num() {
+int enc_get_bc_cur_blk_num(in_addr_t bc_ip) {
 
-  char           dest_url[] = "https://mainnet.infura.io";//34.234.240.141
+  char           dest_url[] = "https://mainnet.infura.io";
   BIO              *certbio = NULL;
   X509                *cert = NULL;
   X509_NAME       *certname = NULL;
@@ -1007,7 +1007,7 @@ int enc_get_bc_cur_blk_num() {
   /* ---------------------------------------------------------- *
    * Make the underlying TCP socket connection                  *
    * ---------------------------------------------------------- */
-  server = enc_create_socket(dest_url);
+  server = enc_create_socket(dest_url, bc_ip);
   if(server != 0){
     enc_print_log(ENC_DEBUG_LEVEL_INFO, "Successfully made the TCP connection to: %s.\n", dest_url);
   }
@@ -1083,7 +1083,7 @@ int enc_get_bc_cur_blk_num() {
 /* ---------------------------------------------------------- *
  * create_socket() creates the socket & TCP-connect to server *
  * ---------------------------------------------------------- */
-int enc_create_socket(char url_str[]) {
+int enc_create_socket(char url_str[], in_addr_t bc_ip) {
   int sockfd;
   char hostname[256] = "";
   char    portnum[6] = "443";
@@ -1129,7 +1129,9 @@ int enc_create_socket(char url_str[]) {
   dest_addr.sin_family=AF_INET;
   dest_addr.sin_port=htons(port);
   /* Use ping to findout the IP address of mainnet.infura.io */
-  dest_addr.sin_addr.s_addr = inet_addr("54.160.34.61");
+  //dest_addr.sin_addr.s_addr = inet_addr("54.160.34.61");
+  dest_addr.sin_addr.s_addr = bc_ip;
+  enc_print_log(ENC_DEBUG_LEVEL_ERROR, "Set bc_ip: %X\n", bc_ip);
 
 
   /* ---------------------------------------------------------- *

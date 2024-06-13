@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
 #include <limits.h>
 #include <arpa/inet.h>
 #include "du_business_logic.h"
@@ -13,6 +14,7 @@
 #include "du_enc_mang.h"
 #include "du_common.h"
 
+#define BC_HOSTNAME "mainnet.infura.io"
 
 char g_buffer[DU_BUF_SZ];
 int g_sockfd;
@@ -22,6 +24,7 @@ char *g_ts_ip;
 char *g_enc_port;
 int g_libenc_port;
 int g_ts_port;
+in_addr_t g_bc_ip = -1;
 int du_setup_server(const char* ip, int port);
 int du_process_srv_req(void);
 void du_finalize_server(void);
@@ -33,6 +36,7 @@ int du_verify_enc(int enc_id);
 int du_verify_mrenclave(const char* exp_value);
 int du_get_edl_file(int enc_id);
 int du_deploy_enc_notify_do(int do_sock);
+in_addr_t du_resolve_ip_addr(const char *hostname);
 
 /* data-user entry */
 int main(int argc, char *argv[])
@@ -45,6 +49,10 @@ int main(int argc, char *argv[])
     {
         exit(-1);
     }
+    
+    g_bc_ip = du_resolve_ip_addr(BC_HOSTNAME);
+
+    print_log(DEBUG_LEVEL_INFO, "Resolved bc_ip: %X\n", g_bc_ip);
 
     if (strcmp(argv[1], "get-approval") == 0)
     {
@@ -700,7 +708,7 @@ int du_deploy_enc_notify_do(int do_sock)
     int cmd_sz = 0;
 
     /* Deploy enclave here */
-    if (du_setup_enc(DU_RCV_SIGNED_ENC_PATH, g_enc_ip, g_enc_port) < 0)
+    if (du_setup_enc(DU_RCV_SIGNED_ENC_PATH, g_enc_ip, g_enc_port, g_bc_ip) < 0)
     {
         print_log(DEBUG_LEVEL_ERROR, "Problem during setup of the received enclave: %s\n", DU_RCV_SIGNED_ENC_PATH);
         goto error_handling;
@@ -722,4 +730,31 @@ int du_deploy_enc_notify_do(int do_sock)
 error_handling:
 
     return ret;
+}
+
+in_addr_t du_resolve_ip_addr(const char *hostname){
+    struct hostent *host_entry;
+    struct in_addr **addr_list;
+    in_addr_t resolved_in_addr = -1;
+
+    // Retrieve host information
+    host_entry = gethostbyname(hostname);
+    if (host_entry == NULL) {
+        print_log(DEBUG_LEVEL_ERROR, "gethostbyname error");
+        goto exit;
+    }
+
+    // Extract the list of IP addresses
+    addr_list = (struct in_addr **)host_entry->h_addr_list;
+
+    // Print all IP addresses associated with the hostname
+    for (int i = 0; addr_list[i] != NULL; i++) {
+        print_log(DEBUG_LEVEL_INFO,"Resolved IP address %d: %s\n", i + 1, inet_ntoa(*addr_list[i]));
+    }
+
+    /* Only pick the first address */
+    resolved_in_addr = (*addr_list[0]).s_addr;
+
+exit:
+    return resolved_in_addr;
 }

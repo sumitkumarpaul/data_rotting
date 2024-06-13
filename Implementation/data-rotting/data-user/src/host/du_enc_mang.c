@@ -44,7 +44,7 @@ int du_pub_decrypt_data(EVP_PKEY* pkey, const char* ctxt, int ctxt_len, char* pt
 char g_du_private_key_file_name[] = "./materials/sample_du_pri_key.pem";
 char g_du_public_key_file_name[] = "./materials/sample_du_pub_key.pem";
 char g_pub_enc_sk_buff[MAX_PUB_ENC_SK_BUF_SZ];
-
+extern in_addr_t g_bc_ip;
 
 typedef struct _sgx_errlist_t {
     sgx_status_t err;
@@ -177,7 +177,7 @@ void terminate_enclave()
 }
 
 
-int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port)
+int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port, in_addr_t bc_ip)
 {
     sgx_status_t result = SGX_SUCCESS;
     int ret = -1;
@@ -205,7 +205,7 @@ int du_setup_enc(const char* enc_path, const char* enc_ip, const char* enc_port)
     if (fork() == 0)
     {
         /* Child process */
-        result = ecall_set_up_tls_server(enclave_global_eid, &ret, enc_port, g_pub_enc_sk_buff, &cipher_text_size, MAX_PUB_ENC_SK_BUF_SZ, keep_server_up);
+        result = ecall_set_up_tls_server(enclave_global_eid, &ret, enc_port, bc_ip, g_pub_enc_sk_buff, &cipher_text_size, MAX_PUB_ENC_SK_BUF_SZ, keep_server_up);
         
         if (result != SGX_SUCCESS || ret != 0)
         {
@@ -276,7 +276,7 @@ int du_access_do_priv_data(void)
         
     print_log(DEBUG_LEVEL_INFO, "Data-user: Start accessing the sealed-data\n");
     
-    enc_result = ecall_enc_access_all_data(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ, g_ts_ip, g_ts_port);
+    enc_result = ecall_enc_access_all_data(enclave_global_eid, &ret, g_buffer, &encypted_result_sz, DU_BUF_SZ, g_bc_ip);
     
     if ((enc_result != SGX_SUCCESS) || (ret != 0) || (encypted_result_sz <= 0))
     {
