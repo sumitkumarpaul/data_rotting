@@ -143,7 +143,7 @@ exit:
     return ret;
 }
 
-/* https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption */
+/* Refer to https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption for details and code example */
 int enc_sym_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *ciphertext, int *p_ciphertext_len)
 {
     EVP_CIPHER_CTX *ctx;
@@ -420,7 +420,7 @@ int enc_verify_do_private_data(const unsigned char* di_cert_der, int di_cert_len
     }
     enc_print_log(ENC_DEBUG_LEVEL_INFO,  "Convert the data-issuer's certificate to X509 structure\n");
 
-#warning Here verify the subject name as well take input in the ecall
+    //TODO: Here verify the subject name as well. It can be taken as input in the ecall
 
     if(X509_STORE_add_cert(store, di_cert_x509) != 1)
     {

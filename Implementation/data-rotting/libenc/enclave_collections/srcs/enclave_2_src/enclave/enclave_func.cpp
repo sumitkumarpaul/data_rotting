@@ -37,42 +37,7 @@ extern "C"
     int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz, in_addr_t bc_ip);
 };
 
-char eligibility_str[200] = {0};
-
 int enc_access_all_data(in_addr_t bc_ip);
-
-int enc_check_SSN()
-{
-    int ret = -1;
-
-
-    ret = 0;
-exit:
-
-    return ret;
-}
-
-int enc_check_age()
-{
-    int ret = -1;
-
-
-    ret = 0;
-exit:
-
-    return ret;
-}
-
-int enc_check_income()
-{
-    int ret = -1;
-
-
-    ret = 0;
-exit:
-
-    return ret;
-}
 
 int enc_access_all_data(in_addr_t bc_ip)
 {
@@ -176,21 +141,12 @@ int ecall_enc_access_all_data(char *result, int *p_result_len, int max_result_sz
     
     enc_print_log(ENC_DEBUG_LEVEL_INFO, "String converted result: %s\n", result_str);
 
-#if 1/* Instead of public-key encyption, use symmetric-key encryption */
     /* +1 is for sending the terminating null charecter as well */
     if (enc_sym_encrypt_result(result_str, (strnlen(result_str, 12) + 1), g_enc_buffer, &result_len) < 0)
     {
         enc_print_log(ENC_DEBUG_LEVEL_ERROR, "Error while encrypting the result\n");
         goto exit;
     }
-#else
-    /* +1 is for sending the terminating null charecter as well */
-    if (enc_pub_encrypt_result(result_str, (strnlen(result_str, 12) + 1), g_enc_buffer, &result_len) < 0)
-    {
-        enc_print_log(ENC_DEBUG_LEVEL_ERROR, "Error while encrypting the result\n");
-        goto exit;
-    }
-#endif
     
     if (max_result_sz < result_len)
     {

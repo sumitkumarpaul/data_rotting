@@ -265,17 +265,15 @@ int ecall_tear_down_tls_server()
     
     ocall_close(&ret, g_client_socket_fd); // close the socket connections
 
-#if 0 /* Do not need to un-necessarily print the socket closing error */
-    if (ret != 0)
-        enc_print_log(ENC_DEBUG_LEVEL_ERROR,  "OCALL: error closing client socket, error code = %d\n", ret);
-#endif
+    if (ret != 0){
+        enc_print_log(ENC_DEBUG_LEVEL_INFO,  "OCALL: error closing client socket, error code = %d, but it is not fatal\n", ret);
+    }
 
     ocall_close(&ret, g_server_socket_fd);
 
-#if 0 /* Do not need to un-necessarily print the socket closing error */
-    if (ret != 0)
-        enc_print_log(ENC_DEBUG_LEVEL_ERROR,  "OCALL: error closing server socket\n");
-#endif
+    if (ret != 0){
+        enc_print_log(ENC_DEBUG_LEVEL_INFO,  "OCALL: error closing server socket, but it is not fatal\n");
+    }
 
     if (g_ssl_session)
     {
