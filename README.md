@@ -105,10 +105,11 @@ cc  -I./src/ -MMD -MP  -c -o src/libenc_debug.o src/libenc_debug.c
 cc  ./src/libenc_main.o ./src/libenc_debug.o -o libenc  
 /home/sumit/data_rotting/Implementation/data-rotting
 ```
+Which means, $Lib_{enc}$ is listening for $DU$'s request.
 
 ### 3.3 Compile and run Data-user in *usage approval* stage
 
-Open another new terminal *(Call it T2)* and issue the following commands:
+Open another new terminal *(Call it T2)* and issue the following commands. It will first fetch the required *enclave* from $Lib_{Enc}$ and then wait for $DO$'s data.
 
 ```
 cd data-user;source /opt/intel/sgxsdk/environment;make clean ENC_SRC_NAME=enclave_2_src;make ENC_SRC_NAME=enclave_2_src; cd -;data-user/data-user get-approval 127.0.0.1 1235 127.0.0.1 1234 127.0.0.1 1236
@@ -129,7 +130,7 @@ mv src/host/data-user .
 
 ### 3.4 Compile and run Data-owner
 
-Open another new terminal *(Call it T3)* and issue the following commands:
+Open another new terminal *(Call it T3)* and issue the following commands, to send the encrypted personal data to the $DU$'s *enclave*. Also, this command specifies an enpiry period of one minute.
 
 ```
 cd data-owner;source /opt/intel/sgxsdk/environment;make clean;make; cd -;echo -e \"y\n\" |data-owner/data-owner 127.0.0.1 1235 127.0.0.1 1234 2 materials/sample_do_cert.pem materials/sample_do_enc_sign_pri_key.pem test/test_data_creater/data_cert_discrete/sample_do_data_20_attr.pem 1
@@ -184,7 +185,7 @@ Succeed.
 
 ### 3.5 Run Data-user in *Data Usage* stage
 
-Go back to the data_user's terminal *(i.e., in T2)* and issue the following commands:
+Go back to the data_user's terminal *(i.e., in T2)* and issue the following command to use $DO$'s personal data within $DU$- launched *enclave*.
 
 ```
 data-user/data-user access-data 127.0.0.1 1240
@@ -201,13 +202,13 @@ DU: [22-04-2024 16:19:23.918306] Data-user: Stop accessing the sealed-data
 DU: [22-04-2024 16:19:23.918320] Data accessed successfully, the result of evaluation is: 20, return from enclave is = 0
 ```
 
-Then wait for more than 1 minute and issue the same command again:
+Then wait for more than 1 minute for the data to expire, and then issue the same command again:
 
 ```
 data-user/data-user access-data 127.0.0.1 1240
 ```
 
-Something like the following should be shown:
+Something like the following should be shown, which indicates data is expired and cannot be used.
 
 ```
 data-user/data-user access-data 127.0.0.1 1240
