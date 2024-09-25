@@ -1,5 +1,6 @@
 # ROT: Retention and Operation limitation using TEE
 This repository contains the prototype implementation of the $ROT$, which provides *Retention and Operation limitation of private data using TEE*.
+Please refer to our paper for the details, which is available [here](https://ieeexplore.ieee.org/document/10679459).
 
 The involved parties in $ROT$ are, a data-owner ($DO$), a data-user ($DU$) and a trusted library ($Lib_{Enc}$). Only $DU$ requires an environment having support of the, Trusted Execution Environment (TEE) and others do not require TEE. **Intel-SGX** is used as the underlying TEE. Specifically, for performing all our development, experimentation and performance measurement purpose, we use an SGX-enabled instance, [DC4SV3](https://learn.microsoft.com/en-us/azure/virtual-machines/dcv3-series) in Microsoft Azure cloud. We use **Ubuntu-20.04** Operating System, in that environment. $ROT$ is mainly implemented in ***C*** and ***C++***-programming languages. This implementation is dependent on [Intel-SGX-SDK](https://github.com/intel/linux-sgx). 
 
